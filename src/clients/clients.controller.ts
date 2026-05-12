@@ -30,6 +30,12 @@ export class ClientsController {
     return this.service.findAll(tenantId, search, sortBy, order);
   }
 
+  @Get('export/excel')
+  @ApiOperation({ summary: 'Export clients data as Excel file' })
+  exportExcel(@CurrentUser('tenantId') tenantId: string) {
+    return this.service.exportExcel(tenantId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get client by ID' })
   findOne(@CurrentUser('tenantId') tenantId: string, @Param('id', ParseUUIDPipe) id: string) {

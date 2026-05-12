@@ -39,6 +39,16 @@ export class SupplierTransactionsController {
     return this.service.supplierBalance(tenantId, supplierId);
   }
 
+  @Get('export/excel')
+  @ApiOperation({ summary: 'Export supplier transactions as Excel file' })
+  @ApiQuery({ name: 'supplierId', required: false })
+  exportExcel(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('supplierId') supplierId?: string,
+  ) {
+    return this.service.exportExcel(tenantId, supplierId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a supplier transaction by ID' })
   findOne(

@@ -70,6 +70,7 @@ export const ModelName = {
   ExpenseCategory: 'ExpenseCategory',
   IncomeCategory: 'IncomeCategory',
   Transaction: 'Transaction',
+  Report: 'Report',
   TelegramUser: 'TelegramUser'
 } as const
 
@@ -361,6 +362,20 @@ export const TransactionScalarFieldEnum = {
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
+
+
+export const ReportScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  name: 'name',
+  format: 'format',
+  objectKey: 'objectKey',
+  size: 'size',
+  createdAt: 'createdAt'
+} as const
+
+export type ReportScalarFieldEnum = (typeof ReportScalarFieldEnum)[keyof typeof ReportScalarFieldEnum]
 
 
 export const TelegramUserScalarFieldEnum = {

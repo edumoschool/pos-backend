@@ -39,6 +39,16 @@ export class ClientTransactionsController {
     return this.service.clientBalance(tenantId, clientId);
   }
 
+  @Get('export/excel')
+  @ApiOperation({ summary: 'Export client transactions as Excel file' })
+  @ApiQuery({ name: 'clientId', required: false })
+  exportExcel(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('clientId') clientId?: string,
+  ) {
+    return this.service.exportExcel(tenantId, clientId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a client transaction by ID' })
   findOne(

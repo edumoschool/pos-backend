@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { MinioService } from '../minio/minio.service';
 import { CreateSupplierTransactionDto } from './dto';
 
 @Injectable()
 export class SupplierTransactionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private minioService: MinioService,
+  ) {}
 
   async create(tenantId: string, userId: string, dto: CreateSupplierTransactionDto) {
     const supplier = await this.prisma.supplier.findFirst({
@@ -82,5 +86,44 @@ export class SupplierTransactionsService {
       balanceUsd: +balanceUsd.toFixed(6),
       transactions,
     };
+  }
+
+  async exportExcel(tenantId: string, supplierId?: string) {
+    const transactions = await this.prisma.supplierTransaction.findMany({
+      where: {
+        tenantId,
+        ...(supplierId && { supplierId }),
+      },
+      include: {
+        supplier: { select: { name: true, phone: true } },
+        user: { select: { fullName: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const headers = ['Date', 'Supplier', 'Phone', 'Type', 'Amount', 'Currency', 'Payment Method', 'Description', 'Created By'];
+    const rows = transactions.map((tx) => [
+      tx.createdAt.toISOString().slice(0, 10),
+      tx.supplier.name,
+      tx.supplier.phone ?? '',
+      tx.type,
+      Number(tx.amount),
+      tx.currency,
+      tx.paymentMethod ?? '',
+      tx.description ?? '',
+      tx.user.fullName,
+    ]);
+
+    const tsvContent = [
+      headers.join('\t'),
+      ...rows.map((row) => row.map((v) => String(v)).join('\t')),
+    ].join('\n');
+
+    const buffer = Buffer.from(tsvContent, 'utf-8');
+    const fileName = `supplier-transactions-${Date.now()}.xls`;
+    const objectKey = await this.minioService.uploadReport(buffer, fileName, 'application/vnd.ms-excel');
+    const url = await this.minioService.getFileUrl(objectKey);
+
+    return { url, fileName };
   }
 }

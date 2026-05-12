@@ -135,6 +135,11 @@ export type IncomeCategory = Prisma.IncomeCategoryModel
  */
 export type Transaction = Prisma.TransactionModel
 /**
+ * Model Report
+ * 
+ */
+export type Report = Prisma.ReportModel
+/**
  * Model TelegramUser
  * 
  */

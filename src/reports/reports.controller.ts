@@ -1,6 +1,8 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Query, Param, Body, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { ReportsService } from './reports.service';
+import { ReportExportService } from './report-export.service';
+import { ExportReportDto } from './dto/export-report.dto';
 import { CurrentUser, Roles } from '../auth/decorators';
 import { UserRole } from '../generated/prisma/client';
 
@@ -9,7 +11,10 @@ import { UserRole } from '../generated/prisma/client';
 @Roles(UserRole.owner, UserRole.super_admin)
 @Controller('reports')
 export class ReportsController {
-  constructor(private service: ReportsService) {}
+  constructor(
+    private service: ReportsService,
+    private reportExportService: ReportExportService,
+  ) {}
 
   @Get('financial-summary')
   @ApiOperation({ summary: 'Financial summary (income, expenses, net profit)' })
@@ -93,5 +98,41 @@ export class ReportsController {
     @Query('limit') limit?: string,
   ) {
     return this.service.topProducts(tenantId, undefined, limit ? parseInt(limit, 10) : undefined);
+  }
+
+  // ─── Report Export Endpoints ──────────────────────────────────────
+
+  @Post('export')
+  @ApiOperation({ summary: 'Export report to file (pdf, excel, csv) and upload to storage' })
+  exportReport(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('userId') userId: string,
+    @Body() dto: ExportReportDto,
+  ) {
+    return this.reportExportService.exportReport(tenantId, userId, dto);
+  }
+
+  @Get('exports')
+  @ApiOperation({ summary: 'List all exported reports' })
+  listExports(@CurrentUser('tenantId') tenantId: string) {
+    return this.reportExportService.getReports(tenantId);
+  }
+
+  @Get('exports/:id/url')
+  @ApiOperation({ summary: 'Get download URL for an exported report' })
+  getExportUrl(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.reportExportService.getReportUrl(tenantId, id);
+  }
+
+  @Delete('exports/:id')
+  @ApiOperation({ summary: 'Delete an exported report' })
+  deleteExport(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.reportExportService.deleteReport(tenantId, id);
   }
 }

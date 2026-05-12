@@ -78,3 +78,12 @@ export const PartyTransactionType = {
 } as const
 
 export type PartyTransactionType = (typeof PartyTransactionType)[keyof typeof PartyTransactionType]
+
+
+export const ReportFormat = {
+  pdf: 'pdf',
+  excel: 'excel',
+  csv: 'csv'
+} as const
+
+export type ReportFormat = (typeof ReportFormat)[keyof typeof ReportFormat]

@@ -23,6 +23,12 @@ export class SuppliersController {
     return this.service.findAll(tenantId, search);
   }
 
+  @Get('export/excel')
+  @ApiOperation({ summary: 'Export suppliers data as Excel file' })
+  exportExcel(@CurrentUser('tenantId') tenantId: string) {
+    return this.service.exportExcel(tenantId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get supplier by ID' })
   findOne(@CurrentUser('tenantId') tenantId: string, @Param('id', ParseUUIDPipe) id: string) {

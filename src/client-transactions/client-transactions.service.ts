@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { MinioService } from '../minio/minio.service';
 import { CreateClientTransactionDto } from './dto';
 
 @Injectable()
 export class ClientTransactionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private minioService: MinioService,
+  ) {}
 
   async create(tenantId: string, userId: string, dto: CreateClientTransactionDto) {
     const client = await this.prisma.client.findFirst({
@@ -81,5 +85,45 @@ export class ClientTransactionsService {
       balanceUsd: +balanceUsd.toFixed(6),
       transactions,
     };
+  }
+
+  async exportExcel(tenantId: string, clientId?: string) {
+    const transactions = await this.prisma.clientTransaction.findMany({
+      where: {
+        tenantId,
+        ...(clientId && { clientId }),
+      },
+      include: {
+        client: { select: { fullName: true, phone: true } },
+        user: { select: { fullName: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const headers = ['Date', 'Client', 'Phone', 'Type', 'Amount', 'Currency', 'Payment Method', 'Due Date', 'Description', 'Created By'];
+    const rows = transactions.map((tx) => [
+      tx.createdAt.toISOString().slice(0, 10),
+      tx.client.fullName,
+      tx.client.phone ?? '',
+      tx.type,
+      Number(tx.amount),
+      tx.currency,
+      tx.paymentMethod ?? '',
+      tx.dueDate ? tx.dueDate.toISOString().slice(0, 10) : '',
+      tx.description ?? '',
+      tx.user.fullName,
+    ]);
+
+    const tsvContent = [
+      headers.join('\t'),
+      ...rows.map((row) => row.map((v) => String(v)).join('\t')),
+    ].join('\n');
+
+    const buffer = Buffer.from(tsvContent, 'utf-8');
+    const fileName = `client-transactions-${Date.now()}.xls`;
+    const objectKey = await this.minioService.uploadReport(buffer, fileName, 'application/vnd.ms-excel');
+    const url = await this.minioService.getFileUrl(objectKey);
+
+    return { url, fileName };
   }
 }

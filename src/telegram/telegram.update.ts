@@ -241,22 +241,16 @@ export class TelegramUpdate {
     const a = await this.adminOnly(ctx);
     if (!a) return;
     const l = await this.lang(ctx);
-    const { salesSummary, financialSummary, debtSummary } = await this.svc.getDashboard(a.tenantId);
+    const { financialSummary, inventoryReport } = await this.svc.getDashboard(a.tenantId);
 
     const msg =
       `${i18n('dashboard_title', l)}\n\n` +
-      `${i18n('sales_label', l)}\n` +
-      `  ${i18n('sales_count', l)}: ${salesSummary.totalSales}\n` +
-      `  ${i18n('revenue', l)}: ${this.fmt(salesSummary.totalAmount)}\n` +
-      `  ${i18n('paid', l)}: ${this.fmt(salesSummary.totalPaid)}\n` +
-      `  ${i18n('outstanding', l)}: ${this.fmt(salesSummary.totalOutstanding)}\n\n` +
       `${i18n('finance_label', l)}\n` +
       `  ${i18n('total_income', l)}: ${this.fmt(financialSummary.totalIncome)}\n` +
       `  ${i18n('expenses', l)}: ${this.fmt(financialSummary.totalExpenses)}\n` +
       `  ${i18n('net_profit', l)}: ${this.fmt(financialSummary.netProfit)}\n\n` +
-      `${i18n('debts_label', l)}\n` +
-      `  ${i18n('total_debt', l)}: ${this.fmt(debtSummary.totalDebt)}\n` +
-      `  ${i18n('pending', l)}: ${debtSummary.pendingCount} | ${i18n('partial', l)}: ${debtSummary.partialCount}`;
+      `📦 Inventory\n` +
+      `  Items: ${inventoryReport.totalItems} | Low stock: ${inventoryReport.lowStockCount}`;
 
     await this.send(ctx, msg, Markup.inlineKeyboard([
       [Markup.button.callback(i18n('refresh', l), 'go_dashboard')],
@@ -287,11 +281,9 @@ export class TelegramUpdate {
 
     await this.send(ctx,
       `${i18n('sales_report_today', l)}\n\n` +
-      `${i18n('total_sales', l)}: *${s.totalSales}*\n` +
-      `${i18n('total_amount', l)}: *${this.fmt(s.totalAmount)}*\n` +
-      `${i18n('paid', l)}: *${this.fmt(s.totalPaid)}*\n` +
-      `${i18n('seller_profit', l)}: *${this.fmt(s.totalSellerProfit)}*\n` +
-      `${i18n('outstanding', l)}: *${this.fmt(s.totalOutstanding)}*`,
+      `${i18n('total_income', l)}: *${this.fmt(s.totalIncome)}*\n` +
+      `${i18n('expenses', l)}: *${this.fmt(s.totalExpenses)}*\n` +
+      `${i18n('net_profit', l)}: *${this.fmt(s.netProfit)}*`,
       Markup.inlineKeyboard([
         [
           Markup.button.callback(i18n('this_week', l), 'sales_week'),
@@ -311,7 +303,7 @@ export class TelegramUpdate {
     const from = new Date(); from.setDate(from.getDate() - 7); from.setHours(0, 0, 0, 0);
     const s = await this.svc.getSalesSummary(a.tenantId, from.toISOString());
     await this.send(ctx,
-      `${i18n('sales_report_week', l)}\n\n${i18n('total_sales', l)}: *${s.totalSales}*\n${i18n('total_amount', l)}: *${this.fmt(s.totalAmount)}*\n${i18n('paid', l)}: *${this.fmt(s.totalPaid)}*\n${i18n('outstanding', l)}: *${this.fmt(s.totalOutstanding)}*`,
+      `${i18n('sales_report_week', l)}\n\n${i18n('total_income', l)}: *${this.fmt(s.totalIncome)}*\n${i18n('expenses', l)}: *${this.fmt(s.totalExpenses)}*\n${i18n('net_profit', l)}: *${this.fmt(s.netProfit)}*`,
       Markup.inlineKeyboard([[Markup.button.callback(i18n('back', l), 'cmd_sales_report')]]),
     );
   }
@@ -324,7 +316,7 @@ export class TelegramUpdate {
     const from = new Date(); from.setDate(1); from.setHours(0, 0, 0, 0);
     const s = await this.svc.getSalesSummary(a.tenantId, from.toISOString());
     await this.send(ctx,
-      `${i18n('sales_report_month', l)}\n\n${i18n('total_sales', l)}: *${s.totalSales}*\n${i18n('total_amount', l)}: *${this.fmt(s.totalAmount)}*\n${i18n('paid', l)}: *${this.fmt(s.totalPaid)}*\n${i18n('outstanding', l)}: *${this.fmt(s.totalOutstanding)}*`,
+      `${i18n('sales_report_month', l)}\n\n${i18n('total_income', l)}: *${this.fmt(s.totalIncome)}*\n${i18n('expenses', l)}: *${this.fmt(s.totalExpenses)}*\n${i18n('net_profit', l)}: *${this.fmt(s.netProfit)}*`,
       Markup.inlineKeyboard([[Markup.button.callback(i18n('back', l), 'cmd_sales_report')]]),
     );
   }
@@ -343,8 +335,6 @@ export class TelegramUpdate {
     const s = await this.svc.getFinancialSummary(a.tenantId, today.toISOString());
     await this.send(ctx,
       `${i18n('financial_today', l)}\n\n` +
-      `${i18n('sales_revenue', l)}: *${this.fmt(s.salesRevenue)}*\n` +
-      `${i18n('other_income', l)}: *${this.fmt(s.otherIncome)}*\n` +
       `${i18n('total_income', l)}: *${this.fmt(s.totalIncome)}*\n` +
       `${i18n('expenses', l)}: *${this.fmt(s.totalExpenses)}*\n━━━━━━━━━━━━━━━━\n` +
       `${i18n('net_profit', l)}: *${this.fmt(s.netProfit)}*`,
@@ -398,7 +388,8 @@ export class TelegramUpdate {
     if (!products.length) { await this.send(ctx, i18n('no_data', l)); return; }
     const lines = products.map((p, i) => {
       const m = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
-      return `${m} *${this.esc(p.name)}*\n   Qty: ${p.totalQuantity} | ${this.fmt(p.totalRevenue)}`;
+      const qty = (p as any).inventory?.[0]?.quantity ?? 0;
+      return `${m} *${this.esc(p.name)}*\n   Stock: ${this.fmt(Number(qty))}`;
     });
     await this.send(ctx, `${i18n('top_products_title', l)}\n\n${lines.join('\n\n')}`,
       Markup.inlineKeyboard([[Markup.button.callback(i18n('back', l), 'go_dashboard')]]),
@@ -411,11 +402,11 @@ export class TelegramUpdate {
     if ('callbackQuery' in ctx.update) await ctx.answerCbQuery();
     const a = await this.auth(ctx); if (!a) return;
     const l = await this.lang(ctx);
-    const sellers = await this.svc.getTopSellers(a.tenantId);
+    const sellers = await this.svc.getTopProducts(a.tenantId);
     if (!sellers.length) { await this.send(ctx, i18n('no_data', l)); return; }
-    const lines = sellers.map((s, i) => {
+    const lines = (sellers as any[]).map((s, i) => {
       const m = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
-      return `${m} *${this.esc(s.fullName)}*\n   Sales: ${s.salesCount} | ${this.fmt(s.totalRevenue)}`;
+      return `${m} *${this.esc(s.fullName ?? s.name)}*`;
     });
     await this.send(ctx, `${i18n('top_sellers_title', l)}\n\n${lines.join('\n\n')}`,
       Markup.inlineKeyboard([[Markup.button.callback(i18n('back', l), 'go_dashboard')]]),
@@ -471,7 +462,7 @@ export class TelegramUpdate {
         `${i18n('product_name', l)}: *${this.esc(p.name)}*\n` +
         `${i18n('selling_price', l)}: *${this.fmt(Number(p.sellingPrice))}*\n` +
         `${i18n('cost_price', l)}: ${p.costPrice ? this.fmt(Number(p.costPrice)) : '—'}\n` +
-        `${i18n('currency', l)}: ${(p as any).currency || 'UZS'}\n` +
+        `💱 ${(p as any).currency || 'UZS'}\n` +
         `${i18n('stock', l)}: ${(p as any).inventory?.quantity ?? '—'}`,
         Markup.inlineKeyboard([
           [
@@ -1116,14 +1107,7 @@ export class TelegramUpdate {
     await this.send(ctx,
       `${i18n('debts_title', l)}\n\n` +
       `${i18n('total_debt', l)}: *${this.fmt(s.totalDebt)}*\n` +
-      `${i18n('total_unpaid', l)}: *${s.totalSales}*\n` +
-      `${i18n('pending', l)}: *${s.pendingCount}*\n` +
-      `${i18n('partial', l)}: *${s.partialCount}*\n\n` +
-      `📅 *${i18n('aging', l)}*\n` +
-      `  0-30d: ${this.fmt(s.aging.current)}\n` +
-      `  31-60d: ${this.fmt(s.aging['31-60'])}\n` +
-      `  61-90d: ${this.fmt(s.aging['61-90'])}\n` +
-      `  90+d: ${this.fmt(s.aging['90+'])}`,
+      `Clients with balance: *${s.clientCount}*`,
       Markup.inlineKeyboard([
         [Markup.button.callback(i18n('client_balances_title', l), 'cmd_client_bal')],
         [Markup.button.callback(i18n('back', l), 'go_dashboard')],
@@ -1611,7 +1595,9 @@ export class TelegramUpdate {
         const val2 = parseFloat(text);
         if (isNaN(val2) || val2 < 0) { await this.send(ctx, i18n('invalid_input', l)); return; }
         try {
-          await this.svc.updateInventory(data.entityId, { [data.field]: val2 });
+          const a14 = await this.auth(ctx);
+          if (!a14) return;
+          await this.svc.updateInventory(data.entityId, a14.tenantId, a14.userId, { [data.field]: val2 });
           await this.svc.setState(chatId, 'idle');
           await this.send(ctx, i18n('updated', l), Markup.inlineKeyboard([[Markup.button.callback(i18n('back', l), `invv:${data.entityId}`)]]));
         } catch { await this.send(ctx, i18n('error', l)); }
@@ -1682,7 +1668,6 @@ export class TelegramUpdate {
           const sale = await this.svc.createSale(a12.tenantId, data.branchId, a12.userId, {
             items: saleItems,
             clientId: data.clientId,
-            paymentMethod: data.paymentMethod,
             paidAmount: paidAmt,
           }) as any;
           await this.svc.setState(chatId, 'idle');

@@ -2,6 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto, UpdateTransactionDto } from './dto';
 
+const INCLUDE = {
+  expenseCategory: true,
+  incomeCategory: true,
+  user: { select: { id: true, fullName: true } },
+  branch: { select: { id: true, name: true } },
+} as const;
+
 @Injectable()
 export class TransactionsService {
   constructor(private prisma: PrismaService) {}
@@ -14,14 +21,12 @@ export class TransactionsService {
         branchId: dto.branchId,
         type: dto.type as any,
         amount: dto.amount,
+        currency: (dto as any).currency,
         expenseCategoryId: dto.expenseCategoryId,
+        incomeCategoryId: (dto as any).incomeCategoryId,
         description: dto.description,
       },
-      include: {
-        expenseCategory: true,
-        user: { select: { id: true, fullName: true } },
-        branch: { select: { id: true, name: true } },
-      },
+      include: INCLUDE,
     });
   }
 
@@ -32,11 +37,7 @@ export class TransactionsService {
         ...(branchId && { branchId }),
         ...(type && { type: type as any }),
       },
-      include: {
-        expenseCategory: true,
-        user: { select: { id: true, fullName: true } },
-        branch: { select: { id: true, name: true } },
-      },
+      include: INCLUDE,
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -44,11 +45,7 @@ export class TransactionsService {
   async findOne(id: string, tenantId: string) {
     const transaction = await this.prisma.transaction.findFirst({
       where: { id, tenantId },
-      include: {
-        expenseCategory: true,
-        user: { select: { id: true, fullName: true } },
-        branch: { select: { id: true, name: true } },
-      },
+      include: INCLUDE,
     });
     if (!transaction) throw new NotFoundException('Transaction not found');
     return transaction;
@@ -62,14 +59,12 @@ export class TransactionsService {
         ...(dto.branchId && { branchId: dto.branchId }),
         ...(dto.type && { type: dto.type as any }),
         ...(dto.amount !== undefined && { amount: dto.amount }),
+        ...((dto as any).currency !== undefined && { currency: (dto as any).currency }),
         ...(dto.expenseCategoryId !== undefined && { expenseCategoryId: dto.expenseCategoryId }),
+        ...((dto as any).incomeCategoryId !== undefined && { incomeCategoryId: (dto as any).incomeCategoryId }),
         ...(dto.description !== undefined && { description: dto.description }),
       },
-      include: {
-        expenseCategory: true,
-        user: { select: { id: true, fullName: true } },
-        branch: { select: { id: true, name: true } },
-      },
+      include: INCLUDE,
     });
   }
 

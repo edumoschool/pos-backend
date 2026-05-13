@@ -71,6 +71,8 @@ export const ModelName = {
   IncomeCategory: 'IncomeCategory',
   Transaction: 'Transaction',
   Report: 'Report',
+  Sale: 'Sale',
+  SaleItem: 'SaleItem',
   TelegramUser: 'TelegramUser'
 } as const
 
@@ -299,6 +301,7 @@ export const ClientTransactionScalarFieldEnum = {
   tenantId: 'tenantId',
   clientId: 'clientId',
   userId: 'userId',
+  saleId: 'saleId',
   type: 'type',
   amount: 'amount',
   currency: 'currency',
@@ -376,6 +379,40 @@ export const ReportScalarFieldEnum = {
 } as const
 
 export type ReportScalarFieldEnum = (typeof ReportScalarFieldEnum)[keyof typeof ReportScalarFieldEnum]
+
+
+export const SaleScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  branchId: 'branchId',
+  userId: 'userId',
+  clientId: 'clientId',
+  status: 'status',
+  paymentMethod: 'paymentMethod',
+  currency: 'currency',
+  totalAmount: 'totalAmount',
+  discount: 'discount',
+  paidAmount: 'paidAmount',
+  debtAmount: 'debtAmount',
+  note: 'note',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SaleScalarFieldEnum = (typeof SaleScalarFieldEnum)[keyof typeof SaleScalarFieldEnum]
+
+
+export const SaleItemScalarFieldEnum = {
+  id: 'id',
+  saleId: 'saleId',
+  productId: 'productId',
+  quantity: 'quantity',
+  unitPrice: 'unitPrice',
+  costPrice: 'costPrice',
+  totalPrice: 'totalPrice'
+} as const
+
+export type SaleItemScalarFieldEnum = (typeof SaleItemScalarFieldEnum)[keyof typeof SaleItemScalarFieldEnum]
 
 
 export const TelegramUserScalarFieldEnum = {

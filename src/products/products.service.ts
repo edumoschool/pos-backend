@@ -98,12 +98,35 @@ export class ProductsService {
 
   async update(id: string, tenantId: string, dto: UpdateProductDto) {
     await this.findOne(id, tenantId);
-    const updated = await this.prisma.product.update({
-      where: { id },
-      data: dto as any,
-      include: { category: true, brandCategory: true, unit: true },
+    const { quantity, minQuantity, ...productData } = dto as any;
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id },
+        data: productData,
+      });
+
+      // Sync inventory fields if provided
+      if (quantity !== undefined || minQuantity !== undefined) {
+        await tx.inventory.updateMany({
+          where: { productId: id, tenantId },
+          data: {
+            ...(quantity !== undefined && { quantity }),
+            ...(minQuantity !== undefined && { minQuantity }),
+          },
+        });
+      }
+
+      const updated = await tx.product.findUnique({
+        where: { id },
+        include: { category: true, brandCategory: true, unit: true, inventory: true },
+      });
+      const inventory = updated.inventory && updated.inventory.length > 0 ? updated.inventory[0] : null;
+      return this.resolveImageUrl({
+        ...updated,
+        inventoryStatus: inventory && inventory.quantity <= (inventory.minQuantity || 0) ? 'low-stock' : 'in-stock',
+      });
     });
-    return this.resolveImageUrl(updated);
   }
 
   async remove(id: string, tenantId: string) {

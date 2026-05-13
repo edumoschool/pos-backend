@@ -80,6 +80,15 @@ export const PartyTransactionType = {
 export type PartyTransactionType = (typeof PartyTransactionType)[keyof typeof PartyTransactionType]
 
 
+export const SaleStatus = {
+  completed: 'completed',
+  debt: 'debt',
+  cancelled: 'cancelled'
+} as const
+
+export type SaleStatus = (typeof SaleStatus)[keyof typeof SaleStatus]
+
+
 export const ReportFormat = {
   pdf: 'pdf',
   excel: 'excel',

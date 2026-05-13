@@ -118,6 +118,16 @@ export type Transaction = Prisma.TransactionModel
  */
 export type Report = Prisma.ReportModel
 /**
+ * Model Sale
+ * 
+ */
+export type Sale = Prisma.SaleModel
+/**
+ * Model SaleItem
+ * 
+ */
+export type SaleItem = Prisma.SaleItemModel
+/**
  * Model TelegramUser
  * 
  */

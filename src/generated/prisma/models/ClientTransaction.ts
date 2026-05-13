@@ -39,6 +39,7 @@ export type ClientTransactionMinAggregateOutputType = {
   tenantId: string | null
   clientId: string | null
   userId: string | null
+  saleId: string | null
   type: $Enums.PartyTransactionType | null
   amount: runtime.Decimal | null
   currency: $Enums.Currency | null
@@ -53,6 +54,7 @@ export type ClientTransactionMaxAggregateOutputType = {
   tenantId: string | null
   clientId: string | null
   userId: string | null
+  saleId: string | null
   type: $Enums.PartyTransactionType | null
   amount: runtime.Decimal | null
   currency: $Enums.Currency | null
@@ -67,6 +69,7 @@ export type ClientTransactionCountAggregateOutputType = {
   tenantId: number
   clientId: number
   userId: number
+  saleId: number
   type: number
   amount: number
   currency: number
@@ -91,6 +94,7 @@ export type ClientTransactionMinAggregateInputType = {
   tenantId?: true
   clientId?: true
   userId?: true
+  saleId?: true
   type?: true
   amount?: true
   currency?: true
@@ -105,6 +109,7 @@ export type ClientTransactionMaxAggregateInputType = {
   tenantId?: true
   clientId?: true
   userId?: true
+  saleId?: true
   type?: true
   amount?: true
   currency?: true
@@ -119,6 +124,7 @@ export type ClientTransactionCountAggregateInputType = {
   tenantId?: true
   clientId?: true
   userId?: true
+  saleId?: true
   type?: true
   amount?: true
   currency?: true
@@ -220,6 +226,7 @@ export type ClientTransactionGroupByOutputType = {
   tenantId: string
   clientId: string
   userId: string
+  saleId: string | null
   type: $Enums.PartyTransactionType
   amount: runtime.Decimal
   currency: $Enums.Currency
@@ -257,6 +264,7 @@ export type ClientTransactionWhereInput = {
   tenantId?: Prisma.UuidFilter<"ClientTransaction"> | string
   clientId?: Prisma.UuidFilter<"ClientTransaction"> | string
   userId?: Prisma.UuidFilter<"ClientTransaction"> | string
+  saleId?: Prisma.UuidNullableFilter<"ClientTransaction"> | string | null
   type?: Prisma.EnumPartyTransactionTypeFilter<"ClientTransaction"> | $Enums.PartyTransactionType
   amount?: Prisma.DecimalFilter<"ClientTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFilter<"ClientTransaction"> | $Enums.Currency
@@ -267,6 +275,7 @@ export type ClientTransactionWhereInput = {
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  sale?: Prisma.XOR<Prisma.SaleNullableScalarRelationFilter, Prisma.SaleWhereInput> | null
 }
 
 export type ClientTransactionOrderByWithRelationInput = {
@@ -274,6 +283,7 @@ export type ClientTransactionOrderByWithRelationInput = {
   tenantId?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  saleId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
@@ -284,6 +294,7 @@ export type ClientTransactionOrderByWithRelationInput = {
   tenant?: Prisma.TenantOrderByWithRelationInput
   client?: Prisma.ClientOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
+  sale?: Prisma.SaleOrderByWithRelationInput
 }
 
 export type ClientTransactionWhereUniqueInput = Prisma.AtLeast<{
@@ -294,6 +305,7 @@ export type ClientTransactionWhereUniqueInput = Prisma.AtLeast<{
   tenantId?: Prisma.UuidFilter<"ClientTransaction"> | string
   clientId?: Prisma.UuidFilter<"ClientTransaction"> | string
   userId?: Prisma.UuidFilter<"ClientTransaction"> | string
+  saleId?: Prisma.UuidNullableFilter<"ClientTransaction"> | string | null
   type?: Prisma.EnumPartyTransactionTypeFilter<"ClientTransaction"> | $Enums.PartyTransactionType
   amount?: Prisma.DecimalFilter<"ClientTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFilter<"ClientTransaction"> | $Enums.Currency
@@ -304,6 +316,7 @@ export type ClientTransactionWhereUniqueInput = Prisma.AtLeast<{
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  sale?: Prisma.XOR<Prisma.SaleNullableScalarRelationFilter, Prisma.SaleWhereInput> | null
 }, "id">
 
 export type ClientTransactionOrderByWithAggregationInput = {
@@ -311,6 +324,7 @@ export type ClientTransactionOrderByWithAggregationInput = {
   tenantId?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  saleId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
@@ -333,6 +347,7 @@ export type ClientTransactionScalarWhereWithAggregatesInput = {
   tenantId?: Prisma.UuidWithAggregatesFilter<"ClientTransaction"> | string
   clientId?: Prisma.UuidWithAggregatesFilter<"ClientTransaction"> | string
   userId?: Prisma.UuidWithAggregatesFilter<"ClientTransaction"> | string
+  saleId?: Prisma.UuidNullableWithAggregatesFilter<"ClientTransaction"> | string | null
   type?: Prisma.EnumPartyTransactionTypeWithAggregatesFilter<"ClientTransaction"> | $Enums.PartyTransactionType
   amount?: Prisma.DecimalWithAggregatesFilter<"ClientTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyWithAggregatesFilter<"ClientTransaction"> | $Enums.Currency
@@ -354,6 +369,7 @@ export type ClientTransactionCreateInput = {
   tenant: Prisma.TenantCreateNestedOneWithoutClientTransactionsInput
   client: Prisma.ClientCreateNestedOneWithoutClientTransactionsInput
   user: Prisma.UserCreateNestedOneWithoutClientTransactionsInput
+  sale?: Prisma.SaleCreateNestedOneWithoutClientTransactionsInput
 }
 
 export type ClientTransactionUncheckedCreateInput = {
@@ -361,6 +377,7 @@ export type ClientTransactionUncheckedCreateInput = {
   tenantId: string
   clientId: string
   userId: string
+  saleId?: string | null
   type: $Enums.PartyTransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -382,6 +399,7 @@ export type ClientTransactionUpdateInput = {
   tenant?: Prisma.TenantUpdateOneRequiredWithoutClientTransactionsNestedInput
   client?: Prisma.ClientUpdateOneRequiredWithoutClientTransactionsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutClientTransactionsNestedInput
+  sale?: Prisma.SaleUpdateOneWithoutClientTransactionsNestedInput
 }
 
 export type ClientTransactionUncheckedUpdateInput = {
@@ -389,6 +407,7 @@ export type ClientTransactionUncheckedUpdateInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  saleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumPartyTransactionTypeFieldUpdateOperationsInput | $Enums.PartyTransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -403,6 +422,7 @@ export type ClientTransactionCreateManyInput = {
   tenantId: string
   clientId: string
   userId: string
+  saleId?: string | null
   type: $Enums.PartyTransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -428,6 +448,7 @@ export type ClientTransactionUncheckedUpdateManyInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  saleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumPartyTransactionTypeFieldUpdateOperationsInput | $Enums.PartyTransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -452,6 +473,7 @@ export type ClientTransactionCountOrderByAggregateInput = {
   tenantId?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  saleId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
@@ -470,6 +492,7 @@ export type ClientTransactionMaxOrderByAggregateInput = {
   tenantId?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  saleId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
@@ -484,6 +507,7 @@ export type ClientTransactionMinOrderByAggregateInput = {
   tenantId?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  saleId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
@@ -631,6 +655,48 @@ export type NullableEnumPaymentMethodFieldUpdateOperationsInput = {
   set?: $Enums.PaymentMethod | null
 }
 
+export type ClientTransactionCreateNestedManyWithoutSaleInput = {
+  create?: Prisma.XOR<Prisma.ClientTransactionCreateWithoutSaleInput, Prisma.ClientTransactionUncheckedCreateWithoutSaleInput> | Prisma.ClientTransactionCreateWithoutSaleInput[] | Prisma.ClientTransactionUncheckedCreateWithoutSaleInput[]
+  connectOrCreate?: Prisma.ClientTransactionCreateOrConnectWithoutSaleInput | Prisma.ClientTransactionCreateOrConnectWithoutSaleInput[]
+  createMany?: Prisma.ClientTransactionCreateManySaleInputEnvelope
+  connect?: Prisma.ClientTransactionWhereUniqueInput | Prisma.ClientTransactionWhereUniqueInput[]
+}
+
+export type ClientTransactionUncheckedCreateNestedManyWithoutSaleInput = {
+  create?: Prisma.XOR<Prisma.ClientTransactionCreateWithoutSaleInput, Prisma.ClientTransactionUncheckedCreateWithoutSaleInput> | Prisma.ClientTransactionCreateWithoutSaleInput[] | Prisma.ClientTransactionUncheckedCreateWithoutSaleInput[]
+  connectOrCreate?: Prisma.ClientTransactionCreateOrConnectWithoutSaleInput | Prisma.ClientTransactionCreateOrConnectWithoutSaleInput[]
+  createMany?: Prisma.ClientTransactionCreateManySaleInputEnvelope
+  connect?: Prisma.ClientTransactionWhereUniqueInput | Prisma.ClientTransactionWhereUniqueInput[]
+}
+
+export type ClientTransactionUpdateManyWithoutSaleNestedInput = {
+  create?: Prisma.XOR<Prisma.ClientTransactionCreateWithoutSaleInput, Prisma.ClientTransactionUncheckedCreateWithoutSaleInput> | Prisma.ClientTransactionCreateWithoutSaleInput[] | Prisma.ClientTransactionUncheckedCreateWithoutSaleInput[]
+  connectOrCreate?: Prisma.ClientTransactionCreateOrConnectWithoutSaleInput | Prisma.ClientTransactionCreateOrConnectWithoutSaleInput[]
+  upsert?: Prisma.ClientTransactionUpsertWithWhereUniqueWithoutSaleInput | Prisma.ClientTransactionUpsertWithWhereUniqueWithoutSaleInput[]
+  createMany?: Prisma.ClientTransactionCreateManySaleInputEnvelope
+  set?: Prisma.ClientTransactionWhereUniqueInput | Prisma.ClientTransactionWhereUniqueInput[]
+  disconnect?: Prisma.ClientTransactionWhereUniqueInput | Prisma.ClientTransactionWhereUniqueInput[]
+  delete?: Prisma.ClientTransactionWhereUniqueInput | Prisma.ClientTransactionWhereUniqueInput[]
+  connect?: Prisma.ClientTransactionWhereUniqueInput | Prisma.ClientTransactionWhereUniqueInput[]
+  update?: Prisma.ClientTransactionUpdateWithWhereUniqueWithoutSaleInput | Prisma.ClientTransactionUpdateWithWhereUniqueWithoutSaleInput[]
+  updateMany?: Prisma.ClientTransactionUpdateManyWithWhereWithoutSaleInput | Prisma.ClientTransactionUpdateManyWithWhereWithoutSaleInput[]
+  deleteMany?: Prisma.ClientTransactionScalarWhereInput | Prisma.ClientTransactionScalarWhereInput[]
+}
+
+export type ClientTransactionUncheckedUpdateManyWithoutSaleNestedInput = {
+  create?: Prisma.XOR<Prisma.ClientTransactionCreateWithoutSaleInput, Prisma.ClientTransactionUncheckedCreateWithoutSaleInput> | Prisma.ClientTransactionCreateWithoutSaleInput[] | Prisma.ClientTransactionUncheckedCreateWithoutSaleInput[]
+  connectOrCreate?: Prisma.ClientTransactionCreateOrConnectWithoutSaleInput | Prisma.ClientTransactionCreateOrConnectWithoutSaleInput[]
+  upsert?: Prisma.ClientTransactionUpsertWithWhereUniqueWithoutSaleInput | Prisma.ClientTransactionUpsertWithWhereUniqueWithoutSaleInput[]
+  createMany?: Prisma.ClientTransactionCreateManySaleInputEnvelope
+  set?: Prisma.ClientTransactionWhereUniqueInput | Prisma.ClientTransactionWhereUniqueInput[]
+  disconnect?: Prisma.ClientTransactionWhereUniqueInput | Prisma.ClientTransactionWhereUniqueInput[]
+  delete?: Prisma.ClientTransactionWhereUniqueInput | Prisma.ClientTransactionWhereUniqueInput[]
+  connect?: Prisma.ClientTransactionWhereUniqueInput | Prisma.ClientTransactionWhereUniqueInput[]
+  update?: Prisma.ClientTransactionUpdateWithWhereUniqueWithoutSaleInput | Prisma.ClientTransactionUpdateWithWhereUniqueWithoutSaleInput[]
+  updateMany?: Prisma.ClientTransactionUpdateManyWithWhereWithoutSaleInput | Prisma.ClientTransactionUpdateManyWithWhereWithoutSaleInput[]
+  deleteMany?: Prisma.ClientTransactionScalarWhereInput | Prisma.ClientTransactionScalarWhereInput[]
+}
+
 export type ClientTransactionCreateWithoutTenantInput = {
   id?: string
   type: $Enums.PartyTransactionType
@@ -642,12 +708,14 @@ export type ClientTransactionCreateWithoutTenantInput = {
   createdAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutClientTransactionsInput
   user: Prisma.UserCreateNestedOneWithoutClientTransactionsInput
+  sale?: Prisma.SaleCreateNestedOneWithoutClientTransactionsInput
 }
 
 export type ClientTransactionUncheckedCreateWithoutTenantInput = {
   id?: string
   clientId: string
   userId: string
+  saleId?: string | null
   type: $Enums.PartyTransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -691,6 +759,7 @@ export type ClientTransactionScalarWhereInput = {
   tenantId?: Prisma.UuidFilter<"ClientTransaction"> | string
   clientId?: Prisma.UuidFilter<"ClientTransaction"> | string
   userId?: Prisma.UuidFilter<"ClientTransaction"> | string
+  saleId?: Prisma.UuidNullableFilter<"ClientTransaction"> | string | null
   type?: Prisma.EnumPartyTransactionTypeFilter<"ClientTransaction"> | $Enums.PartyTransactionType
   amount?: Prisma.DecimalFilter<"ClientTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFilter<"ClientTransaction"> | $Enums.Currency
@@ -711,12 +780,14 @@ export type ClientTransactionCreateWithoutUserInput = {
   createdAt?: Date | string
   tenant: Prisma.TenantCreateNestedOneWithoutClientTransactionsInput
   client: Prisma.ClientCreateNestedOneWithoutClientTransactionsInput
+  sale?: Prisma.SaleCreateNestedOneWithoutClientTransactionsInput
 }
 
 export type ClientTransactionUncheckedCreateWithoutUserInput = {
   id?: string
   tenantId: string
   clientId: string
+  saleId?: string | null
   type: $Enums.PartyTransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -763,12 +834,14 @@ export type ClientTransactionCreateWithoutClientInput = {
   createdAt?: Date | string
   tenant: Prisma.TenantCreateNestedOneWithoutClientTransactionsInput
   user: Prisma.UserCreateNestedOneWithoutClientTransactionsInput
+  sale?: Prisma.SaleCreateNestedOneWithoutClientTransactionsInput
 }
 
 export type ClientTransactionUncheckedCreateWithoutClientInput = {
   id?: string
   tenantId: string
   userId: string
+  saleId?: string | null
   type: $Enums.PartyTransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -804,10 +877,65 @@ export type ClientTransactionUpdateManyWithWhereWithoutClientInput = {
   data: Prisma.XOR<Prisma.ClientTransactionUpdateManyMutationInput, Prisma.ClientTransactionUncheckedUpdateManyWithoutClientInput>
 }
 
+export type ClientTransactionCreateWithoutSaleInput = {
+  id?: string
+  type: $Enums.PartyTransactionType
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
+  paymentMethod?: $Enums.PaymentMethod | null
+  description?: string | null
+  dueDate?: Date | string | null
+  createdAt?: Date | string
+  tenant: Prisma.TenantCreateNestedOneWithoutClientTransactionsInput
+  client: Prisma.ClientCreateNestedOneWithoutClientTransactionsInput
+  user: Prisma.UserCreateNestedOneWithoutClientTransactionsInput
+}
+
+export type ClientTransactionUncheckedCreateWithoutSaleInput = {
+  id?: string
+  tenantId: string
+  clientId: string
+  userId: string
+  type: $Enums.PartyTransactionType
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
+  paymentMethod?: $Enums.PaymentMethod | null
+  description?: string | null
+  dueDate?: Date | string | null
+  createdAt?: Date | string
+}
+
+export type ClientTransactionCreateOrConnectWithoutSaleInput = {
+  where: Prisma.ClientTransactionWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClientTransactionCreateWithoutSaleInput, Prisma.ClientTransactionUncheckedCreateWithoutSaleInput>
+}
+
+export type ClientTransactionCreateManySaleInputEnvelope = {
+  data: Prisma.ClientTransactionCreateManySaleInput | Prisma.ClientTransactionCreateManySaleInput[]
+  skipDuplicates?: boolean
+}
+
+export type ClientTransactionUpsertWithWhereUniqueWithoutSaleInput = {
+  where: Prisma.ClientTransactionWhereUniqueInput
+  update: Prisma.XOR<Prisma.ClientTransactionUpdateWithoutSaleInput, Prisma.ClientTransactionUncheckedUpdateWithoutSaleInput>
+  create: Prisma.XOR<Prisma.ClientTransactionCreateWithoutSaleInput, Prisma.ClientTransactionUncheckedCreateWithoutSaleInput>
+}
+
+export type ClientTransactionUpdateWithWhereUniqueWithoutSaleInput = {
+  where: Prisma.ClientTransactionWhereUniqueInput
+  data: Prisma.XOR<Prisma.ClientTransactionUpdateWithoutSaleInput, Prisma.ClientTransactionUncheckedUpdateWithoutSaleInput>
+}
+
+export type ClientTransactionUpdateManyWithWhereWithoutSaleInput = {
+  where: Prisma.ClientTransactionScalarWhereInput
+  data: Prisma.XOR<Prisma.ClientTransactionUpdateManyMutationInput, Prisma.ClientTransactionUncheckedUpdateManyWithoutSaleInput>
+}
+
 export type ClientTransactionCreateManyTenantInput = {
   id?: string
   clientId: string
   userId: string
+  saleId?: string | null
   type: $Enums.PartyTransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -828,12 +956,14 @@ export type ClientTransactionUpdateWithoutTenantInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutClientTransactionsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutClientTransactionsNestedInput
+  sale?: Prisma.SaleUpdateOneWithoutClientTransactionsNestedInput
 }
 
 export type ClientTransactionUncheckedUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  saleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumPartyTransactionTypeFieldUpdateOperationsInput | $Enums.PartyTransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -847,6 +977,7 @@ export type ClientTransactionUncheckedUpdateManyWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  saleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumPartyTransactionTypeFieldUpdateOperationsInput | $Enums.PartyTransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -860,6 +991,7 @@ export type ClientTransactionCreateManyUserInput = {
   id?: string
   tenantId: string
   clientId: string
+  saleId?: string | null
   type: $Enums.PartyTransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -880,12 +1012,14 @@ export type ClientTransactionUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tenant?: Prisma.TenantUpdateOneRequiredWithoutClientTransactionsNestedInput
   client?: Prisma.ClientUpdateOneRequiredWithoutClientTransactionsNestedInput
+  sale?: Prisma.SaleUpdateOneWithoutClientTransactionsNestedInput
 }
 
 export type ClientTransactionUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  saleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumPartyTransactionTypeFieldUpdateOperationsInput | $Enums.PartyTransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -899,6 +1033,7 @@ export type ClientTransactionUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  saleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumPartyTransactionTypeFieldUpdateOperationsInput | $Enums.PartyTransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -912,6 +1047,7 @@ export type ClientTransactionCreateManyClientInput = {
   id?: string
   tenantId: string
   userId: string
+  saleId?: string | null
   type: $Enums.PartyTransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -932,12 +1068,14 @@ export type ClientTransactionUpdateWithoutClientInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tenant?: Prisma.TenantUpdateOneRequiredWithoutClientTransactionsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutClientTransactionsNestedInput
+  sale?: Prisma.SaleUpdateOneWithoutClientTransactionsNestedInput
 }
 
 export type ClientTransactionUncheckedUpdateWithoutClientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  saleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumPartyTransactionTypeFieldUpdateOperationsInput | $Enums.PartyTransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -950,6 +1088,63 @@ export type ClientTransactionUncheckedUpdateWithoutClientInput = {
 export type ClientTransactionUncheckedUpdateManyWithoutClientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  saleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumPartyTransactionTypeFieldUpdateOperationsInput | $Enums.PartyTransactionType
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ClientTransactionCreateManySaleInput = {
+  id?: string
+  tenantId: string
+  clientId: string
+  userId: string
+  type: $Enums.PartyTransactionType
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
+  paymentMethod?: $Enums.PaymentMethod | null
+  description?: string | null
+  dueDate?: Date | string | null
+  createdAt?: Date | string
+}
+
+export type ClientTransactionUpdateWithoutSaleInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPartyTransactionTypeFieldUpdateOperationsInput | $Enums.PartyTransactionType
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutClientTransactionsNestedInput
+  client?: Prisma.ClientUpdateOneRequiredWithoutClientTransactionsNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutClientTransactionsNestedInput
+}
+
+export type ClientTransactionUncheckedUpdateWithoutSaleInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPartyTransactionTypeFieldUpdateOperationsInput | $Enums.PartyTransactionType
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ClientTransactionUncheckedUpdateManyWithoutSaleInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  clientId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumPartyTransactionTypeFieldUpdateOperationsInput | $Enums.PartyTransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -967,6 +1162,7 @@ export type ClientTransactionSelect<ExtArgs extends runtime.Types.Extensions.Int
   tenantId?: boolean
   clientId?: boolean
   userId?: boolean
+  saleId?: boolean
   type?: boolean
   amount?: boolean
   currency?: boolean
@@ -977,6 +1173,7 @@ export type ClientTransactionSelect<ExtArgs extends runtime.Types.Extensions.Int
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  sale?: boolean | Prisma.ClientTransaction$saleArgs<ExtArgs>
 }, ExtArgs["result"]["clientTransaction"]>
 
 export type ClientTransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -984,6 +1181,7 @@ export type ClientTransactionSelectCreateManyAndReturn<ExtArgs extends runtime.T
   tenantId?: boolean
   clientId?: boolean
   userId?: boolean
+  saleId?: boolean
   type?: boolean
   amount?: boolean
   currency?: boolean
@@ -994,6 +1192,7 @@ export type ClientTransactionSelectCreateManyAndReturn<ExtArgs extends runtime.T
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  sale?: boolean | Prisma.ClientTransaction$saleArgs<ExtArgs>
 }, ExtArgs["result"]["clientTransaction"]>
 
 export type ClientTransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1001,6 +1200,7 @@ export type ClientTransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   tenantId?: boolean
   clientId?: boolean
   userId?: boolean
+  saleId?: boolean
   type?: boolean
   amount?: boolean
   currency?: boolean
@@ -1011,6 +1211,7 @@ export type ClientTransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  sale?: boolean | Prisma.ClientTransaction$saleArgs<ExtArgs>
 }, ExtArgs["result"]["clientTransaction"]>
 
 export type ClientTransactionSelectScalar = {
@@ -1018,6 +1219,7 @@ export type ClientTransactionSelectScalar = {
   tenantId?: boolean
   clientId?: boolean
   userId?: boolean
+  saleId?: boolean
   type?: boolean
   amount?: boolean
   currency?: boolean
@@ -1027,21 +1229,24 @@ export type ClientTransactionSelectScalar = {
   createdAt?: boolean
 }
 
-export type ClientTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "clientId" | "userId" | "type" | "amount" | "currency" | "paymentMethod" | "description" | "dueDate" | "createdAt", ExtArgs["result"]["clientTransaction"]>
+export type ClientTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "clientId" | "userId" | "saleId" | "type" | "amount" | "currency" | "paymentMethod" | "description" | "dueDate" | "createdAt", ExtArgs["result"]["clientTransaction"]>
 export type ClientTransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  sale?: boolean | Prisma.ClientTransaction$saleArgs<ExtArgs>
 }
 export type ClientTransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  sale?: boolean | Prisma.ClientTransaction$saleArgs<ExtArgs>
 }
 export type ClientTransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  sale?: boolean | Prisma.ClientTransaction$saleArgs<ExtArgs>
 }
 
 export type $ClientTransactionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1050,12 +1255,14 @@ export type $ClientTransactionPayload<ExtArgs extends runtime.Types.Extensions.I
     tenant: Prisma.$TenantPayload<ExtArgs>
     client: Prisma.$ClientPayload<ExtArgs>
     user: Prisma.$UserPayload<ExtArgs>
+    sale: Prisma.$SalePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     tenantId: string
     clientId: string
     userId: string
+    saleId: string | null
     type: $Enums.PartyTransactionType
     amount: runtime.Decimal
     currency: $Enums.Currency
@@ -1460,6 +1667,7 @@ export interface Prisma__ClientTransactionClient<T, Null = never, ExtArgs extend
   tenant<T extends Prisma.TenantDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TenantDefaultArgs<ExtArgs>>): Prisma.Prisma__TenantClient<runtime.Types.Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   client<T extends Prisma.ClientDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientDefaultArgs<ExtArgs>>): Prisma.Prisma__ClientClient<runtime.Types.Result.GetResult<Prisma.$ClientPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  sale<T extends Prisma.ClientTransaction$saleArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTransaction$saleArgs<ExtArgs>>): Prisma.Prisma__SaleClient<runtime.Types.Result.GetResult<Prisma.$SalePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1493,6 +1701,7 @@ export interface ClientTransactionFieldRefs {
   readonly tenantId: Prisma.FieldRef<"ClientTransaction", 'String'>
   readonly clientId: Prisma.FieldRef<"ClientTransaction", 'String'>
   readonly userId: Prisma.FieldRef<"ClientTransaction", 'String'>
+  readonly saleId: Prisma.FieldRef<"ClientTransaction", 'String'>
   readonly type: Prisma.FieldRef<"ClientTransaction", 'PartyTransactionType'>
   readonly amount: Prisma.FieldRef<"ClientTransaction", 'Decimal'>
   readonly currency: Prisma.FieldRef<"ClientTransaction", 'Currency'>
@@ -1898,6 +2107,25 @@ export type ClientTransactionDeleteManyArgs<ExtArgs extends runtime.Types.Extens
    * Limit how many ClientTransactions to delete.
    */
   limit?: number
+}
+
+/**
+ * ClientTransaction.sale
+ */
+export type ClientTransaction$saleArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Sale
+   */
+  select?: Prisma.SaleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Sale
+   */
+  omit?: Prisma.SaleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SaleInclude<ExtArgs> | null
+  where?: Prisma.SaleWhereInput
 }
 
 /**

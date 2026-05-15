@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
+import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
 import { TelegramService } from '../telegram/telegram.service';
@@ -12,6 +13,7 @@ export class ClientTransactionsService {
   constructor(
     private prisma: PrismaService,
     private minioService: MinioService,
+    private exchangeRates: ExchangeRatesService,
     @Optional() private telegram: TelegramService,
   ) {}
 
@@ -127,10 +129,13 @@ export class ClientTransactionsService {
       else balanceUsd += sign * Number(tx.amount);
     }
 
+    const { usdToUzs } = await this.exchangeRates.getLatest();
+
     return {
       client,
-      balanceUzs: +balanceUzs.toFixed(2),
-      balanceUsd: +balanceUsd.toFixed(6),
+      totalAmountUzs: +balanceUzs.toFixed(2),
+      totalAmountUsd: +balanceUsd.toFixed(6),
+      totalAmount: +(balanceUzs + balanceUsd * usdToUzs).toFixed(2),
       transactions,
     };
   }

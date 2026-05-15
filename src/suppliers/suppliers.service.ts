@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
 import { CreateSupplierDto, UpdateSupplierDto } from './dto';
@@ -9,6 +10,7 @@ export class SuppliersService {
   constructor(
     private prisma: PrismaService,
     private minioService: MinioService,
+    private exchangeRates: ExchangeRatesService,
   ) {}
 
   create(tenantId: string, dto: CreateSupplierDto) {
@@ -29,19 +31,72 @@ export class SuppliersService {
         ],
       }),
     };
-    const [data, total] = await Promise.all([
-      this.prisma.supplier.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take }),
+    const { usdToUzs } = await this.exchangeRates.getLatest();
+    const [suppliers, total] = await Promise.all([
+      this.prisma.supplier.findMany({
+        where,
+        include: {
+          supplierTransactions: {
+            select: { amount: true, currency: true, type: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
       this.prisma.supplier.count({ where }),
     ]);
+
+    const data = suppliers.map(({ supplierTransactions, ...supplier }) => {
+      let balanceUzs = 0;
+      let balanceUsd = 0;
+      for (const tx of supplierTransactions) {
+        const sign = tx.type === 'income' ? 1 : -1;
+        if (tx.currency === 'UZS') balanceUzs += sign * Number(tx.amount);
+        else balanceUsd += sign * Number(tx.amount);
+      }
+      return {
+        ...supplier,
+        totalAmountUzs: +balanceUzs.toFixed(2),
+        totalAmountUsd: +balanceUsd.toFixed(6),
+        totalAmount: +(balanceUzs + balanceUsd * usdToUzs).toFixed(2),
+      };
+    });
+
     return paginated(data, total, p, l);
   }
 
   async findOne(tenantId: string, id: string) {
     const supplier = await this.prisma.supplier.findFirst({
       where: { id, tenantId },
+      include: {
+        supplierTransactions: { take: 10, orderBy: { createdAt: 'desc' } },
+      },
     });
     if (!supplier) throw new NotFoundException('Supplier not found');
-    return supplier;
+
+    const allTransactions = await this.prisma.supplierTransaction.findMany({
+      where: { tenantId, supplierId: id },
+      select: { amount: true, currency: true, type: true },
+    });
+
+    let balanceUzs = 0;
+    let balanceUsd = 0;
+
+    for (const tx of allTransactions) {
+      const sign = tx.type === 'income' ? 1 : -1;
+      if (tx.currency === 'UZS') balanceUzs += sign * Number(tx.amount);
+      else balanceUsd += sign * Number(tx.amount);
+    }
+
+    const { usdToUzs } = await this.exchangeRates.getLatest();
+
+    return {
+      ...supplier,
+      totalAmountUzs: +balanceUzs.toFixed(2),
+      totalAmountUsd: +balanceUsd.toFixed(6),
+      totalAmount: +(balanceUzs + balanceUsd * usdToUzs).toFixed(2),
+    };
   }
 
   async update(tenantId: string, id: string, dto: UpdateSupplierDto) {
@@ -53,26 +108,8 @@ export class SuppliersService {
   }
 
   async remove(tenantId: string, id: string) {
-    const supplier = await this.prisma.supplier.findFirst({
-      where: { id, tenantId },
-      include: {
-        supplierTransactions: {
-          select: { amount: true, type: true, currency: true },
-        },
-      },
-    });
-    if (!supplier) throw new NotFoundException('Supplier not found');
-
-    let balanceUzs = 0;
-    let balanceUsd = 0;
-
-    for (const tx of supplier.supplierTransactions) {
-      const sign = tx.type === 'income' ? 1 : -1;
-      if (tx.currency === 'UZS') balanceUzs += sign * Number(tx.amount);
-      else balanceUsd += sign * Number(tx.amount);
-    }
-
-    if (balanceUzs < 0 || balanceUsd < 0) {
+    const supplier = await this.findOne(tenantId, id);
+    if (supplier.totalAmountUzs < 0 || supplier.totalAmountUsd < 0) {
       throw new BadRequestException('Cannot delete supplier with outstanding debt');
     }
 

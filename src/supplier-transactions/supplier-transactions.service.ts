@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
 import { CreateSupplierTransactionDto } from './dto';
@@ -9,6 +10,7 @@ export class SupplierTransactionsService {
   constructor(
     private prisma: PrismaService,
     private minioService: MinioService,
+    private exchangeRates: ExchangeRatesService,
   ) {}
 
   async create(tenantId: string, userId: string, dto: CreateSupplierTransactionDto) {
@@ -89,10 +91,13 @@ export class SupplierTransactionsService {
       else balanceUsd += sign * Number(tx.amount);
     }
 
+    const { usdToUzs } = await this.exchangeRates.getLatest();
+
     return {
       supplier,
-      balanceUzs: +balanceUzs.toFixed(2),
-      balanceUsd: +balanceUsd.toFixed(6),
+      totalAmountUzs: +balanceUzs.toFixed(2),
+      totalAmountUsd: +balanceUsd.toFixed(6),
+      totalAmount: +(balanceUzs + balanceUsd * usdToUzs).toFixed(2),
       transactions,
     };
   }

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
 import { CreateClientDto, UpdateClientDto } from './dto';
@@ -9,6 +10,7 @@ export class ClientsService {
   constructor(
     private prisma: PrismaService,
     private minioService: MinioService,
+    private exchangeRates: ExchangeRatesService,
   ) {}
 
   create(tenantId: string, dto: CreateClientDto) {
@@ -39,40 +41,43 @@ export class ClientsService {
       }),
     };
 
+    const { usdToUzs } = await this.exchangeRates.getLatest();
+
     if (sortField === 'clientTransAmount') {
-      // Fetch ALL matching records for in-memory sort, then slice manually
       const clients = await this.prisma.client.findMany({
         where,
         include: {
           clientTransactions: {
-            select: { amount: true, currency: true },
+            select: { amount: true, currency: true, type: true },
           },
         },
       });
 
       const result = clients.map(({ clientTransactions, ...client }) => {
-        let totalAmountUzs = 0;
-        let totalAmountUsd = 0;
+        let balanceUzs = 0;
+        let balanceUsd = 0;
         for (const tx of clientTransactions) {
-          if (tx.currency === 'UZS') totalAmountUzs += Number(tx.amount);
-          else totalAmountUsd += Number(tx.amount);
+          const sign = tx.type === 'income' ? 1 : -1;
+          if (tx.currency === 'UZS') balanceUzs += sign * Number(tx.amount);
+          else balanceUsd += sign * Number(tx.amount);
         }
         return {
           ...client,
-          totalAmountUzs: +totalAmountUzs.toFixed(2),
-          totalAmountUsd: +totalAmountUsd.toFixed(6),
+          totalAmountUzs: +balanceUzs.toFixed(2),
+          totalAmountUsd: +balanceUsd.toFixed(6),
+          totalAmount: +(balanceUzs + balanceUsd * usdToUzs).toFixed(2),
         };
       });
 
       result.sort((a, b) => {
-        const totalA = a.totalAmountUzs + a.totalAmountUsd;
-        const totalB = b.totalAmountUzs + b.totalAmountUsd;
+        const totalA = a.totalAmount;
+        const totalB = b.totalAmount;
         return sortOrder === 'asc' ? totalA - totalB : totalB - totalA;
       });
 
       const total = result.length;
-      const sliced = result.slice(skip, skip + take);
-      return paginated(sliced, total, p, l);
+      const data = result.slice(skip, skip + take);
+      return paginated(data, total, p, l);
     }
 
     const [clients, total] = await Promise.all([
@@ -80,7 +85,7 @@ export class ClientsService {
         where,
         include: {
           clientTransactions: {
-            select: { amount: true, currency: true },
+            select: { amount: true, currency: true, type: true },
           },
         },
         ...(sortField === 'createdAt' && {
@@ -96,17 +101,19 @@ export class ClientsService {
     ]);
 
     const data = clients.map(({ clientTransactions, ...client }) => {
-      let totalAmountUzs = 0;
-      let totalAmountUsd = 0;
+      let balanceUzs = 0;
+      let balanceUsd = 0;
       for (const tx of clientTransactions) {
-        if (tx.currency === 'UZS') totalAmountUzs += Number(tx.amount);
-        else totalAmountUsd += Number(tx.amount);
+        const sign = tx.type === 'income' ? 1 : -1;
+        if (tx.currency === 'UZS') balanceUzs += sign * Number(tx.amount);
+        else balanceUsd += sign * Number(tx.amount);
       }
-      return {
-        ...client,
-        totalAmountUzs: +totalAmountUzs.toFixed(2),
-        totalAmountUsd: +totalAmountUsd.toFixed(6),
-      };
+        return {
+          ...client,
+          totalAmountUzs: +balanceUzs.toFixed(2),
+          totalAmountUsd: +balanceUsd.toFixed(6),
+          totalAmount: +(balanceUzs + balanceUsd * usdToUzs).toFixed(2),
+        };
     });
 
     return paginated(data, total, p, l);
@@ -123,21 +130,25 @@ export class ClientsService {
 
     const allTransactions = await this.prisma.clientTransaction.findMany({
       where: { tenantId, clientId: id },
-      select: { amount: true, currency: true },
+      select: { amount: true, currency: true, type: true },
     });
 
-    let totalAmountUzs = 0;
-    let totalAmountUsd = 0;
+    let balanceUzs = 0;
+    let balanceUsd = 0;
 
     for (const tx of allTransactions) {
-      if (tx.currency === 'UZS') totalAmountUzs += Number(tx.amount);
-      else totalAmountUsd += Number(tx.amount);
+      const sign = tx.type === 'income' ? 1 : -1;
+      if (tx.currency === 'UZS') balanceUzs += sign * Number(tx.amount);
+      else balanceUsd += sign * Number(tx.amount);
     }
+
+    const { usdToUzs } = await this.exchangeRates.getLatest();
 
     return {
       ...client,
-      totalAmountUzs: +totalAmountUzs.toFixed(2),
-      totalAmountUsd: +totalAmountUsd.toFixed(6),
+      totalAmountUzs: +balanceUzs.toFixed(2),
+      totalAmountUsd: +balanceUsd.toFixed(6),
+      totalAmount: +(balanceUzs + balanceUsd * usdToUzs).toFixed(2),
     };
   }
 
@@ -150,26 +161,8 @@ export class ClientsService {
   }
 
   async remove(tenantId: string, id: string) {
-    const client = await this.prisma.client.findFirst({
-      where: { id, tenantId },
-      include: {
-        clientTransactions: {
-          select: { amount: true, type: true, currency: true },
-        },
-      },
-    });
-    if (!client) throw new NotFoundException('Client not found');
-
-    let balanceUzs = 0;
-    let balanceUsd = 0;
-
-    for (const tx of client.clientTransactions) {
-      const sign = tx.type === 'income' ? 1 : -1;
-      if (tx.currency === 'UZS') balanceUzs += sign * Number(tx.amount);
-      else balanceUsd += sign * Number(tx.amount);
-    }
-
-    if (balanceUzs < 0 || balanceUsd < 0) {
+    const client = await this.findOne(tenantId, id);
+    if (client.totalAmountUzs < 0 || client.totalAmountUsd < 0) {
       throw new BadRequestException('Cannot delete client with outstanding debt');
     }
 

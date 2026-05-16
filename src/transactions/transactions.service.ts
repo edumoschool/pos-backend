@@ -14,12 +14,22 @@ const INCLUDE = {
 export class TransactionsService {
   constructor(private prisma: PrismaService) {}
 
-  create(tenantId: string, userId: string, dto: CreateTransactionDto) {
+  async create(tenantId: string, userId: string, dto: CreateTransactionDto) {
+    let branchId = dto.branchId;
+
+    if (!branchId) {
+      const branch = await this.prisma.branch.findFirst({
+        where: { tenantId },
+        orderBy: { createdAt: 'asc' },
+      });
+      branchId = branch?.id;
+    }
+
     return this.prisma.transaction.create({
       data: {
         tenantId,
         userId,
-        branchId: dto.branchId,
+        branchId,
         type: dto.type as any,
         amount: dto.amount,
         currency: (dto as any).currency,

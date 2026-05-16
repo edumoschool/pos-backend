@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
 import { TransactionType } from '../generated/prisma/client';
 
 @Injectable()
 export class ReportsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private exchangeRatesService: ExchangeRatesService,
+  ) {}
 
   // ─── Financial transactions summary (income / expense) ───────────
 
@@ -18,19 +22,31 @@ export class ReportsService {
     }
 
     const transactions = await this.prisma.transaction.findMany({ where });
+    const { usdToUzs } = await this.exchangeRatesService.getLatest();
 
-    const income = transactions
-      .filter((t) => t.type === TransactionType.income)
-      .reduce((sum, t) => sum + Number(t.amount), 0);
+    let incomeUzs = 0;
+    let incomeUsd = 0;
+    let expensesUzs = 0;
+    let expensesUsd = 0;
 
-    const expenses = transactions
-      .filter((t) => t.type === TransactionType.expense)
-      .reduce((sum, t) => sum + Number(t.amount), 0);
+    for (const tx of transactions) {
+      const amount = Number(tx.amount);
+      if (tx.type === TransactionType.income) {
+        if (tx.currency === 'UZS') incomeUzs += amount;
+        else incomeUsd += amount;
+      } else {
+        if (tx.currency === 'UZS') expensesUzs += amount;
+        else expensesUsd += amount;
+      }
+    }
+
+    const totalIncome = incomeUzs + incomeUsd * usdToUzs;
+    const totalExpenses = expensesUzs + expensesUsd * usdToUzs;
 
     return {
-      totalIncome: +income.toFixed(2),
-      totalExpenses: +expenses.toFixed(2),
-      netProfit: +(income - expenses).toFixed(2),
+      totalIncome: +totalIncome.toFixed(2),
+      totalExpenses: +totalExpenses.toFixed(2),
+      netProfit: +(totalIncome - totalExpenses).toFixed(2),
       transactionCount: transactions.length,
     };
   }
@@ -194,6 +210,8 @@ export class ReportsService {
       include: { clientTransactions: true },
     });
 
+    const { usdToUzs } = await this.exchangeRatesService.getLatest();
+
     return clients.map((client) => {
       let balanceUzs = 0;
       let balanceUsd = 0;
@@ -202,12 +220,14 @@ export class ReportsService {
         if (tx.currency === 'UZS') balanceUzs += sign * Number(tx.amount);
         else balanceUsd += sign * Number(tx.amount);
       }
+      const totalUzs = balanceUzs + balanceUsd * usdToUzs;
       return {
         id: client.id,
         fullName: client.fullName,
         phone: client.phone,
         balanceUzs: +balanceUzs.toFixed(2),
         balanceUsd: +balanceUsd.toFixed(6),
+        totalAmount: +totalUzs.toFixed(2),
         transactionCount: client.clientTransactions.length,
       };
     });
@@ -221,6 +241,8 @@ export class ReportsService {
       include: { supplierTransactions: true },
     });
 
+    const { usdToUzs } = await this.exchangeRatesService.getLatest();
+
     return suppliers.map((supplier) => {
       let balanceUzs = 0;
       let balanceUsd = 0;
@@ -229,12 +251,14 @@ export class ReportsService {
         if (tx.currency === 'UZS') balanceUzs += sign * Number(tx.amount);
         else balanceUsd += sign * Number(tx.amount);
       }
+      const totalUzs = balanceUzs + balanceUsd * usdToUzs;
       return {
         id: supplier.id,
         name: supplier.name,
         phone: supplier.phone,
         balanceUzs: +balanceUzs.toFixed(2),
         balanceUsd: +balanceUsd.toFixed(6),
+        totalAmount: +totalUzs.toFixed(2),
         transactionCount: supplier.supplierTransactions.length,
       };
     });

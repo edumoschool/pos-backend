@@ -1,10 +1,11 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Minio from 'minio';
 import { Readable } from 'stream';
 
 @Injectable()
 export class MinioService implements OnModuleInit {
+  private readonly logger = new Logger(MinioService.name);
   private client: Minio.Client;
   private bucketName: string;
 
@@ -24,9 +25,27 @@ export class MinioService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    const exists = await this.client.bucketExists(this.bucketName);
-    if (!exists) {
-      await this.client.makeBucket(this.bucketName);
+    // MinIO may still be starting when this runs, so the first connections can
+    // be refused. Retry with a short backoff rather than letting a cold
+    // dependency crash the whole app on boot.
+    const attempts = 10;
+
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        const exists = await this.client.bucketExists(this.bucketName);
+        if (!exists) {
+          await this.client.makeBucket(this.bucketName);
+        }
+        return;
+      } catch (err) {
+        if (attempt === attempts) {
+          throw err;
+        }
+        this.logger.warn(
+          `MinIO not ready (attempt ${attempt}/${attempts}), retrying in 3s`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      }
     }
   }
 

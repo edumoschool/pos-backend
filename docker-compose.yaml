@@ -72,18 +72,10 @@ services:
       MINIO_BROWSER_REDIRECT_URL: https://${MINIO_CONSOLE_DOMAIN}
     volumes:
       - pos-minio-data:/data
-    healthcheck:
-      # MinIO serves this endpoint itself and the image ships no curl/wget,
-      # so the check is driven by the bundled binary rather than a shell tool.
-      test:
-        [
-          "CMD-SHELL",
-          "mc ready local 2>/dev/null || curl -fsS http://127.0.0.1:9000/minio/health/live || exit 1",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
+    # No healthcheck override: the minio image ships neither curl nor wget nor
+    # mc, so a CMD-SHELL probe fails instantly and the container is marked
+    # unhealthy about a second after starting. The image defines its own
+    # HEALTHCHECK against /minio/health/live, which is what we want anyway.
 
   backend:
     build:
@@ -95,8 +87,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      # service_started, not service_healthy: whether the minio image defines a
+      # HEALTHCHECK varies by tag, and waiting on one it may not have would
+      # hang the deploy. MinioService.onModuleInit now retries, so it tolerates
+      # MinIO still warming up.
       minio:
-        condition: service_healthy
+        condition: service_started
     environment:
       # Publishes port 7000 on the backend domain and generates its routing.
       SERVICE_FQDN_BACKEND_7000:

@@ -33,35 +33,51 @@ That value is `DATABASE_URL` and `DIRECT_URL` for the backend.
 
 ## 2. MinIO
 
-Create MinIO as a one-click resource, or as a Docker image resource using
-`minio/minio:latest` with the start command:
+Coolify removed its one-click MinIO template, so deploy it from the compose
+file in this repo: [`deploy/minio/docker-compose.yaml`](deploy/minio/docker-compose.yaml).
 
-```
-server /data --console-address ":9001"
-```
+In Coolify: **New Resource -> Docker Compose**, and paste that file's contents.
 
-It needs two ports published, each on its own domain:
+Two ports are published, each on its own domain:
 
-| Port | Purpose | Suggested domain |
+| Port | Purpose | Domain |
 |---|---|---|
-| 9000 | S3 API — what the app and image URLs use | `s3.impulselc.uz` |
+| 9000 | S3 API — what the backend and image URLs use | `s3.impulselc.uz` |
 | 9001 | Web console | `minio.impulselc.uz` |
 
-Set these on the MinIO resource:
+Set these in the resource's Environment Variables tab:
 
 | Variable | Value |
 |---|---|
-| `MINIO_ROOT_USER` | choose one; this becomes the backend's `MINIO_ACCESS_KEY` |
-| `MINIO_ROOT_PASSWORD` | choose one; becomes `MINIO_SECRET_KEY` |
-| `MINIO_SERVER_URL` | `https://s3.impulselc.uz` |
-| `MINIO_BROWSER_REDIRECT_URL` | `https://minio.impulselc.uz` |
+| `SERVICE_FQDN_MINIO_9000` | `s3.impulselc.uz` |
+| `SERVICE_FQDN_MINIO_9001` | `minio.impulselc.uz` |
+| `MINIO_API_DOMAIN` | `s3.impulselc.uz` |
+| `MINIO_CONSOLE_DOMAIN` | `minio.impulselc.uz` |
+| `MINIO_ROOT_USER` | an access key you choose — becomes the backend's `MINIO_ACCESS_KEY` |
+| `MINIO_ROOT_PASSWORD` | a long random secret (min 8 chars) — becomes `MINIO_SECRET_KEY` |
 
-Add a persistent volume mounted at `/data`, or every image is lost on redeploy.
+The `SERVICE_FQDN_*` keys drive Traefik routing and certificates; the plain
+`*_DOMAIN` keys are the same hostnames as values MinIO itself reads to build
+redirect and presigned URLs.
+
+The compose file declares a named volume at `/data`, so object data survives
+redeploys.
+
+### Create the bucket
+
+After MinIO is up, open `https://minio.impulselc.uz`, sign in with the root
+credentials, and create a bucket named **`pos-images`** (or whatever you set as
+the backend's `MINIO_BUCKET`).
+
+> The backend also creates the bucket on boot if it is missing, so this step is
+> belt-and-braces. Creating it by hand first lets you set an access policy —
+> objects are private by default, which means image URLs only work as presigned
+> links.
 
 > Do not add a custom healthcheck command. The `minio/minio` image ships
 > neither `curl`, `wget`, nor `mc`, so a shell-based probe fails instantly and
-> the container is marked unhealthy about a second after starting. The image
-> defines its own healthcheck.
+> the container is marked unhealthy about a second after starting. The compose
+> file deliberately defines none; the image carries its own.
 
 ## 3. pos-backend
 
@@ -81,12 +97,12 @@ repository, branch `master`. Coolify builds the `Dockerfile` at the repo root.
 | `DIRECT_URL` | same value as `DATABASE_URL` |
 | `JWT_SECRET` | a long random string — see below |
 | `JWT_EXPIRES_IN` | `7d` |
-| `MINIO_ENDPOINT` | MinIO's internal service name (not the public domain) |
-| `MINIO_PORT` | `9000` |
-| `MINIO_USE_SSL` | `false` |
+| `MINIO_ENDPOINT` | `s3.impulselc.uz` |
+| `MINIO_PORT` | `443` |
+| `MINIO_USE_SSL` | `true` |
 | `MINIO_ACCESS_KEY` | MinIO's `MINIO_ROOT_USER` |
 | `MINIO_SECRET_KEY` | MinIO's `MINIO_ROOT_PASSWORD` |
-| `MINIO_BUCKET` | `pos-images` — created automatically on first boot |
+| `MINIO_BUCKET` | `pos-images` — must match the bucket from step 2 |
 | `TELEGRAM_BOT_TOKEN` | from @BotFather |
 | `TELEGRAM_WEBHOOK_DOMAIN` | `https://po.impulselc.uz` |
 | `EXPO_ACCESS_TOKEN` | optional, only for push notifications |
@@ -103,9 +119,13 @@ node -e "console.log(require('crypto').randomBytes(64).toString('base64url'))"
 > `TELEGRAM_BOT_TOKEN` gets past config and then fails inside Telegraf with a
 > less obvious error.
 
-> `MINIO_ENDPOINT` must be the internal service name, so traffic stays on the
-> host and `MINIO_USE_SSL=false` is correct. The public `s3.` domain is for
-> clients fetching images, not for the backend.
+> The backend reaches MinIO over its public domain, because separate Coolify
+> resources do not share a Docker network by default. That means TLS on port
+> 443, not plain HTTP on 9000 — `MINIO_PORT: 443` and `MINIO_USE_SSL: true`
+> must be set together or the client fails to connect. Uploads therefore leave
+> the host and come back through Traefik; if that overhead matters later, put
+> both resources on Coolify's predefined network and switch back to the
+> internal service name with port 9000 and SSL off.
 
 ---
 
@@ -167,7 +187,7 @@ mixing the two creates drift.
 
 - `https://po.impulselc.uz/api/docs` — Swagger UI
 - `https://minio.impulselc.uz` — MinIO console
-- Confirm the `pos-images` bucket exists after the backend's first boot
+- Confirm the `pos-images` bucket exists in the MinIO console
 
 ---
 

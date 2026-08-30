@@ -1,0 +1,53 @@
+# MinIO — standalone Coolify resource.
+#
+# Coolify's one-click MinIO template was removed, so deploy this as:
+#   New Resource -> Docker Compose, with this file's contents.
+#
+# Two domains are published, one per port:
+#   9000  S3 API      -> s3.impulselc.uz      (the backend and image URLs)
+#   9001  web console -> minio.impulselc.uz
+#
+# Set these in the resource's Environment Variables tab before deploying:
+#   SERVICE_FQDN_MINIO_9000   s3.impulselc.uz
+#   SERVICE_FQDN_MINIO_9001   minio.impulselc.uz
+#   MINIO_API_DOMAIN          s3.impulselc.uz
+#   MINIO_CONSOLE_DOMAIN      minio.impulselc.uz
+#   MINIO_ROOT_USER           an access key you choose
+#   MINIO_ROOT_PASSWORD       a long random secret (min 8 chars)
+#
+# Both DNS records must resolve to the Coolify host before the first deploy,
+# or certificate issuance fails.
+
+services:
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    # Declaring both ports is what makes Coolify render a domain field for
+    # each. Without it, only the image's own EXPOSE (9000) is picked up and
+    # the console domain silently reverts to a generated default.
+    expose:
+      - "9000"
+      - "9001"
+    environment:
+      SERVICE_FQDN_MINIO_9000:
+      SERVICE_FQDN_MINIO_9001:
+
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+      # Public URLs MinIO uses when building redirects and presigned links.
+      # Without MINIO_SERVER_URL the console generates links to the container's
+      # own hostname, which nothing outside the host can reach.
+      MINIO_SERVER_URL: https://${MINIO_API_DOMAIN}
+      MINIO_BROWSER_REDIRECT_URL: https://${MINIO_CONSOLE_DOMAIN}
+    volumes:
+      # Named volume, so object data survives redeploys.
+      - minio-data:/data
+    # No healthcheck here on purpose: the minio image ships neither curl, wget,
+    # nor mc, so any CMD-SHELL probe fails the moment it runs and the container
+    # is marked unhealthy about a second after starting. The image carries its
+    # own healthcheck against /minio/health/live.
+
+volumes:
+  minio-data:

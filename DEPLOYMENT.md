@@ -21,8 +21,15 @@ will fail:
 
 ## 2. Create the resource
 
-In Coolify: **New Resource → Docker Compose**, point it at this repository and
-set the compose file to `docker-compose.coolify.yml`.
+In Coolify: **New Resource → Docker Compose**, point it at this repository.
+
+The file is named `docker-compose.yml` at the repo root, which is what Coolify
+looks for by default — leave the "Docker Compose Location" field as
+`/docker-compose.yml`. (A non-default name such as `docker-compose.coolify.yml`
+makes Coolify fail with "Failed to read the Docker Compose file from the
+repository" unless that field is updated to match.)
+
+Set the branch to `master`.
 
 ## 3. Environment variables
 

@@ -143,28 +143,33 @@ Point these at the Coolify host before deploying, or TLS issuance fails:
 
 ## 5. Database schema
 
-The container runs `prisma db push` before starting the app, so schema changes
-apply on deploy. `db push` diffs `prisma/schema.prisma` against the live
-database and applies only the difference, making restarts and redeploys safe.
+Schema changes are applied **manually**, not on deploy. The container only
+starts the app; it carries no Prisma CLI and no `prisma.config.ts`.
 
-There is no migration history in this project — the schema file is the single
-source of truth.
+There is no migration history in this project — `prisma/schema.prisma` is the
+single source of truth, pushed directly with `prisma db push`.
 
-### Fresh database
+### Applying a schema change
 
-Nothing to do. The first deploy creates every table, enum, index and foreign
-key defined in the schema.
+Point `DIRECT_URL` at the production database and push from your machine
+before deploying the code that depends on it:
 
-### Adding a schema change later
+```bash
+npx prisma db push      # or: npm run db:push
+```
 
-Edit `prisma/schema.prisma`, commit, and deploy — the change is pushed on
-container start.
+`db push` diffs the schema against the live database and applies only the
+difference, so it is safe to re-run.
 
-> **Destructive changes need a manual step.** If a change drops or narrows a
-> column, `db push` asks for confirmation, and with no TTY in the container it
-> aborts instead — blocking startup. Apply those yourself against the database
-> first, or run the push locally with `--accept-data-loss`, which proceeds and
-> discards the affected data.
+> **Destructive changes.** If a change drops or narrows a column, `db push`
+> asks for confirmation before discarding data. Running it locally means you
+> get that prompt and can answer it — the reason this step is not automated.
+
+### Order of operations
+
+Push the schema first, then deploy. The running app expects the columns its
+generated client references, so deploying code ahead of the schema breaks
+queries until the push lands.
 
 ---
 
@@ -179,14 +184,13 @@ container start.
 ## Notes
 
 - **Start order.** The backend retries its MinIO bucket check ten times with a
-  3s backoff, so MinIO starting slowly is tolerated. Postgres is not retried in
-  the same way: `db push` needs a ready server, so bring the database up
-  before the backend.
+  3s backoff, so MinIO starting slowly is tolerated. Postgres is not retried
+  in the same way, so bring the database up before the backend.
 - **`DATABASE_URL` and `DIRECT_URL` are identical.** Prisma reads the first at
-  runtime through the pg adapter and the second for schema pushes. They would
-  only differ behind a connection pooler such as pgbouncer.
-- **Prisma CLI in the image.** `prisma` is a devDependency, and
-  `ENV NODE_ENV=production` makes npm skip dev packages on every install — so
-  the Dockerfile installs it with `--include=dev` and invokes it as
-  `node node_modules/prisma/build/index.js`. Both details matter; `npx prisma`
-  silently downloads a different version instead.
+  runtime through the pg adapter and the second by `prisma.config.ts` for
+  manual schema pushes. They would only differ behind a connection pooler
+  such as pgbouncer.
+- **No Prisma CLI in the production image.** The runtime stage installs only
+  production dependencies. The generated client is compiled into `dist/` by
+  the builder and reaches the database through `@prisma/adapter-pg`, so the
+  app needs neither the CLI nor `prisma.config.ts` to run.

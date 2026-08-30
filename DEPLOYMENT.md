@@ -1,180 +1,187 @@
 # Deploying pos-backend on Coolify
 
-Stack: **pos-backend** (NestJS) + **PostgreSQL 16** + **MinIO**.
+Three resources, created separately in Coolify:
+
+1. **PostgreSQL 16** — database
+2. **MinIO** — object storage for product images
+3. **pos-backend** — this repository, built from the `Dockerfile`
 
 Redis is not included — nothing in the codebase uses it. Cron jobs run
-in-process through `@nestjs/schedule`. Add it when you introduce BullMQ or
-caching; it is a new service in the compose file plus one env var.
+in-process through `@nestjs/schedule`.
+
+Create them in that order: the backend needs connection details from the other
+two.
 
 ---
 
-## 1. DNS
+## 1. PostgreSQL
 
-Point three A records at the Coolify host before deploying, or TLS issuance
-will fail:
+Coolify has a one-click PostgreSQL resource. Create it, pick version 16, and
+note the credentials it generates.
 
-| Record | Purpose |
+Do **not** expose it publicly. The backend reaches it over Coolify's internal
+network.
+
+From the resource's page, copy the **internal** connection string. It looks
+like:
+
+```
+postgresql://postgres:<password>@<service-name>:5432/postgres
+```
+
+That value is `DATABASE_URL` and `DIRECT_URL` for the backend.
+
+## 2. MinIO
+
+Create MinIO as a one-click resource, or as a Docker image resource using
+`minio/minio:latest` with the start command:
+
+```
+server /data --console-address ":9001"
+```
+
+It needs two ports published, each on its own domain:
+
+| Port | Purpose | Suggested domain |
+|---|---|---|
+| 9000 | S3 API — what the app and image URLs use | `s3.impulselc.uz` |
+| 9001 | Web console | `minio.impulselc.uz` |
+
+Set these on the MinIO resource:
+
+| Variable | Value |
 |---|---|
-| `po.impulselc.uz` | the backend API |
-| `s3.impulselc.uz` | MinIO S3 endpoint (image URLs) |
-| `minio.impulselc.uz` | MinIO web console |
+| `MINIO_ROOT_USER` | choose one; this becomes the backend's `MINIO_ACCESS_KEY` |
+| `MINIO_ROOT_PASSWORD` | choose one; becomes `MINIO_SECRET_KEY` |
+| `MINIO_SERVER_URL` | `https://s3.impulselc.uz` |
+| `MINIO_BROWSER_REDIRECT_URL` | `https://minio.impulselc.uz` |
 
-## 2. Create the resource
+Add a persistent volume mounted at `/data`, or every image is lost on redeploy.
 
-In Coolify: **New Resource → Docker Compose**, point it at this repository.
+> Do not add a custom healthcheck command. The `minio/minio` image ships
+> neither `curl`, `wget`, nor `mc`, so a shell-based probe fails instantly and
+> the container is marked unhealthy about a second after starting. The image
+> defines its own healthcheck.
 
-The file is named `docker-compose.yaml` at the repo root, and the resource's
-"Docker Compose Location" field must match it exactly — including the
-extension. Coolify treats `.yaml` and `.yml` as different paths and does not
-fall back from one to the other, so a mismatch fails with either "Failed to
-read the Docker Compose file from the repository" or "Docker Compose file not
-found at: /docker-compose.yaml".
+## 3. pos-backend
 
-If you rename the file, update that field to match (or vice versa).
+Create a resource of type **Dockerfile** (not Docker Compose) pointing at this
+repository, branch `master`. Coolify builds the `Dockerfile` at the repo root.
 
-Set the branch to `master`.
+- **Port**: 7000
+- **Domain**: `po.impulselc.uz`
 
-## 3. Environment variables
+### Environment variables
 
-### Set the six domain variables
-
-In the resource's Environment Variables tab:
-
-| Variable | Value | Used for |
-|---|---|---|
-| `SERVICE_FQDN_BACKEND_7000` | `po.impulselc.uz` | routing + TLS |
-| `SERVICE_FQDN_MINIO_9000` | `s3.impulselc.uz` | routing + TLS |
-| `SERVICE_FQDN_MINIO_9001` | `minio.impulselc.uz` | routing + TLS |
-| `BACKEND_DOMAIN` | `po.impulselc.uz` | Telegram webhook URL |
-| `MINIO_API_DOMAIN` | `s3.impulselc.uz` | `MINIO_SERVER_URL` |
-| `MINIO_CONSOLE_DOMAIN` | `minio.impulselc.uz` | `MINIO_BROWSER_REDIRECT_URL` |
-
-Hostname only — no `https://`, no trailing slash.
-
-The `SERVICE_FQDN_*_<PORT>` keys drive routing: the `_<PORT>` suffix tells
-Coolify which container port the domain maps to, and it generates the Traefik
-configuration and certificate. That is why this compose file has no
-`traefik.*` labels.
-
-The plain `*_DOMAIN` keys are the same hostnames as values the app can read,
-so it can build `https://…` URLs. They duplicate the FQDNs deliberately:
-Coolify populates the matching `SERVICE_URL_*` keys only when it assigns the
-domain itself, and they resolve to a blank string when you set the domains by
-hand — which silently empties the webhook and MinIO URLs.
-
-> **Delete any stale `SERVICE_*` entries.** Coolify keeps generated variables
-> after the compose file stops referencing them, and will auto-assign
-> `sslip.io` wildcard domains to them. If you see `SERVICE_FQDN_MINIO`,
-> `SERVICE_URL_MINIOCONSOLE`, or any other name without a `_<PORT>` suffix,
-> remove it — those are leftovers and nothing reads them.
-
-> **If a domain field reverts to a generated default after you save it**, or a
-> port has no field at all, the service is missing an `expose` entry for that
-> port. Coolify builds one domain field per exposed port; a `SERVICE_FQDN_*`
-> key for a port it does not know about is discarded. Both MinIO ports and the
-> backend port are declared with `expose:` in the compose file for this reason.
-
-### Also set this
-
-| Variable | Example | Notes |
-|---|---|---|
-| `TELEGRAM_BOT_TOKEN` | `123456:ABC-...` | **required — get it from @BotFather** |
-
-### Generated for you (leave blank)
-
-| Variable | What it becomes |
+| Variable | Value |
 |---|---|
-| `SERVICE_USER_POSTGRES` / `SERVICE_PASSWORD_POSTGRES` | Postgres credentials |
-| `SERVICE_USER_MINIO` / `SERVICE_PASSWORD_MINIO` | MinIO root creds + the app's S3 keys |
-| `SERVICE_PASSWORD_JWT` | `JWT_SECRET` |
+| `NODE_ENV` | `production` |
+| `PORT` | `7000` |
+| `DATABASE_URL` | internal Postgres URL from step 1 |
+| `DIRECT_URL` | same value as `DATABASE_URL` |
+| `JWT_SECRET` | a long random string — see below |
+| `JWT_EXPIRES_IN` | `7d` |
+| `MINIO_ENDPOINT` | MinIO's internal service name (not the public domain) |
+| `MINIO_PORT` | `9000` |
+| `MINIO_USE_SSL` | `false` |
+| `MINIO_ACCESS_KEY` | MinIO's `MINIO_ROOT_USER` |
+| `MINIO_SECRET_KEY` | MinIO's `MINIO_ROOT_PASSWORD` |
+| `MINIO_BUCKET` | `pos-images` — created automatically on first boot |
+| `TELEGRAM_BOT_TOKEN` | from @BotFather |
+| `TELEGRAM_WEBHOOK_DOMAIN` | `https://po.impulselc.uz` |
+| `EXPO_ACCESS_TOKEN` | optional, only for push notifications |
 
-Coolify generates these once and keeps them stable across deploys.
+Generate a JWT secret with:
 
-### Optional
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('base64url'))"
+```
 
-| Variable | Default | Notes |
-|---|---|---|
-| `POSTGRES_DB` | `pos` | |
-| `MINIO_BUCKET` | `pos-images` | created automatically on first boot |
-| `JWT_EXPIRES_IN` | `7d` | |
-| `EXPO_ACCESS_TOKEN` | *(empty)* | only needed for push notifications |
+> **Every `MINIO_*` value and `TELEGRAM_BOT_TOKEN` are read with
+> `ConfigService.getOrThrow`.** A missing one stops the app at startup rather
+> than degrading. Note that an *empty* string passes `getOrThrow`, so a blank
+> `TELEGRAM_BOT_TOKEN` gets past config and then fails inside Telegraf with a
+> less obvious error.
 
-> `TELEGRAM_BOT_TOKEN` and every `MINIO_*` value are read with
-> `ConfigService.getOrThrow`, so a missing one crashes the container at
-> startup rather than degrading. That is why they have no defaults here.
+> `MINIO_ENDPOINT` must be the internal service name, so traffic stays on the
+> host and `MINIO_USE_SSL=false` is correct. The public `s3.` domain is for
+> clients fetching images, not for the backend.
 
 ---
 
-## 4. Database migrations
+## 4. DNS
 
-The container runs `prisma migrate deploy` before starting the app. It only
-applies migrations that have not run yet, so restarts and redeploys are safe.
+Point these at the Coolify host before deploying, or TLS issuance fails:
+
+| Record | Resource |
+|---|---|
+| `po.impulselc.uz` | backend |
+| `s3.impulselc.uz` | MinIO port 9000 |
+| `minio.impulselc.uz` | MinIO port 9001 |
+
+---
+
+## 5. Database migrations
+
+The container runs `prisma migrate deploy` before starting the app, so schema
+changes apply on deploy. It only runs migrations that have not run yet, making
+restarts and redeploys safe.
 
 ### Fresh database
 
 Nothing to do. The baseline migration creates all 23 tables, 10 enums,
 35 indexes and 44 foreign keys on the first deploy.
 
-### Existing database (important)
+### Existing database
 
-Your current database was built with `prisma db push`, so the tables already
-exist but Prisma has no migration history for them. A first `migrate deploy`
-against it **will fail** — it tries to create tables that are already there.
+If the database already has tables created by `prisma db push`, Prisma has no
+migration history for them and the first `migrate deploy` **will fail** — it
+tries to create tables that already exist.
 
-Mark the baseline as already-applied once, against that database:
-
-```bash
-DATABASE_URL='<prod url>' DIRECT_URL='<prod url>' \
-  npx prisma migrate resolve --applied 00000000000000_baseline
-```
-
-or, from inside the running container:
+Mark the baseline as already-applied once, from inside the running container
+or with the production URL set locally:
 
 ```bash
-npx prisma migrate resolve --applied 00000000000000_baseline
+node node_modules/prisma/build/index.js migrate resolve \
+  --applied 00000000000000_baseline
 ```
 
-This only writes a row to `_prisma_migrations`; it does not touch your data.
-After that, `migrate deploy` is a no-op until you add a new migration.
+This only writes a row to `_prisma_migrations`; it does not touch data.
 
-> Verify the baseline matches your live schema before running this. It was
-> generated from `prisma/schema.prisma` and includes the 29 indexes added
-> recently — if the live database predates those, apply them separately or let
-> a follow-up migration add them.
+> Verify the baseline matches your live schema first. It includes 29 indexes
+> added recently — if the live database predates those, apply them separately.
 
 ### Adding a schema change later
 
 ```bash
 npx prisma migrate dev --name add_something   # locally, creates the migration
-git commit && push                             # deploy applies it automatically
+git commit && push                            # deploy applies it
 ```
 
 Stop using `prisma db push` against production once migrations are in play —
-mixing the two is what creates drift.
+mixing the two creates drift.
 
 ---
 
-## 5. Verify
+## 6. Verify
 
 - `https://po.impulselc.uz/api/docs` — Swagger UI
-- `https://minio.impulselc.uz` — MinIO console, log in with the generated
-  `SERVICE_USER_MINIO` / `SERVICE_PASSWORD_MINIO`
+- `https://minio.impulselc.uz` — MinIO console
 - Confirm the `pos-images` bucket exists after the backend's first boot
 
 ---
 
-## Notes on the topology
+## Notes
 
-- **Postgres publishes no ports.** It is reachable only as `postgres:5432` on
-  the internal compose network. To connect a client, use a Coolify terminal or
-  an SSH tunnel rather than opening the port.
-- **The backend talks to MinIO internally** over `minio:9000` with
-  `MINIO_USE_SSL=false`. Traffic never leaves the host, so TLS there would only
-  add overhead. The public `s3.impulselc.uz` route is for clients fetching
-  images.
+- **Start order.** The backend retries its MinIO bucket check ten times with a
+  3s backoff, so MinIO starting slowly is tolerated. Postgres is not retried in
+  the same way: `migrate deploy` needs a ready server, so bring the database up
+  before the backend.
 - **`DATABASE_URL` and `DIRECT_URL` are identical.** Prisma reads the first at
   runtime through the pg adapter and the second for migrations. They would only
-  diverge behind a connection pooler such as pgbouncer.
-- **Startup ordering** is handled with `depends_on: condition: service_healthy`,
-  so the backend waits for a genuinely ready database rather than a running
-  container.
+  differ behind a connection pooler such as pgbouncer.
+- **Prisma CLI in the image.** `prisma` is a devDependency, and
+  `ENV NODE_ENV=production` makes npm skip dev packages on every install — so
+  the Dockerfile installs it with `--include=dev` and invokes it as
+  `node node_modules/prisma/build/index.js`. Both details matter; `npx prisma`
+  silently downloads a different version instead.

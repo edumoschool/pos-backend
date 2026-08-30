@@ -22,6 +22,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { ReportsModule } from './reports/reports.module';
 import { DebtsModule } from './debts/debts.module';
 import { MinioModule } from './minio/minio.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { JwtAuthGuard, RolesGuard, SubscriptionGuard } from './auth/guards';
 
 @Module({
@@ -46,6 +47,7 @@ import { JwtAuthGuard, RolesGuard, SubscriptionGuard } from './auth/guards';
     ReportsModule,
     DebtsModule,
     MinioModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [

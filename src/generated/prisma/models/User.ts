@@ -33,6 +33,7 @@ export type UserMinAggregateOutputType = {
   role: $Enums.UserRole | null
   fullName: string | null
   language: $Enums.Language | null
+  expoPushToken: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -47,6 +48,7 @@ export type UserMaxAggregateOutputType = {
   role: $Enums.UserRole | null
   fullName: string | null
   language: $Enums.Language | null
+  expoPushToken: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -61,6 +63,7 @@ export type UserCountAggregateOutputType = {
   role: number
   fullName: number
   language: number
+  expoPushToken: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -77,6 +80,7 @@ export type UserMinAggregateInputType = {
   role?: true
   fullName?: true
   language?: true
+  expoPushToken?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -91,6 +95,7 @@ export type UserMaxAggregateInputType = {
   role?: true
   fullName?: true
   language?: true
+  expoPushToken?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -105,6 +110,7 @@ export type UserCountAggregateInputType = {
   role?: true
   fullName?: true
   language?: true
+  expoPushToken?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -192,6 +198,7 @@ export type UserGroupByOutputType = {
   role: $Enums.UserRole
   fullName: string
   language: $Enums.Language
+  expoPushToken: string | null
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -227,6 +234,7 @@ export type UserWhereInput = {
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   fullName?: Prisma.StringFilter<"User"> | string
   language?: Prisma.EnumLanguageFilter<"User"> | $Enums.Language
+  expoPushToken?: Prisma.StringNullableFilter<"User"> | string | null
   isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -246,6 +254,7 @@ export type UserOrderByWithRelationInput = {
   role?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   language?: Prisma.SortOrder
+  expoPushToken?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -269,6 +278,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   fullName?: Prisma.StringFilter<"User"> | string
   language?: Prisma.EnumLanguageFilter<"User"> | $Enums.Language
+  expoPushToken?: Prisma.StringNullableFilter<"User"> | string | null
   isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -288,6 +298,7 @@ export type UserOrderByWithAggregationInput = {
   role?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   language?: Prisma.SortOrder
+  expoPushToken?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -308,6 +319,7 @@ export type UserScalarWhereWithAggregatesInput = {
   role?: Prisma.EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
   fullName?: Prisma.StringWithAggregatesFilter<"User"> | string
   language?: Prisma.EnumLanguageWithAggregatesFilter<"User"> | $Enums.Language
+  expoPushToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -320,6 +332,7 @@ export type UserCreateInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -339,6 +352,7 @@ export type UserUncheckedCreateInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -354,6 +368,7 @@ export type UserUpdateInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -373,6 +388,7 @@ export type UserUncheckedUpdateInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -390,6 +406,7 @@ export type UserCreateManyInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -402,6 +419,7 @@ export type UserUpdateManyMutationInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -416,6 +434,7 @@ export type UserUncheckedUpdateManyInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -445,6 +464,7 @@ export type UserCountOrderByAggregateInput = {
   role?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   language?: Prisma.SortOrder
+  expoPushToken?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -459,6 +479,7 @@ export type UserMaxOrderByAggregateInput = {
   role?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   language?: Prisma.SortOrder
+  expoPushToken?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -473,6 +494,7 @@ export type UserMinOrderByAggregateInput = {
   role?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   language?: Prisma.SortOrder
+  expoPushToken?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -620,6 +642,7 @@ export type UserCreateWithoutTenantInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -637,6 +660,7 @@ export type UserUncheckedCreateWithoutTenantInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -683,6 +707,7 @@ export type UserScalarWhereInput = {
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   fullName?: Prisma.StringFilter<"User"> | string
   language?: Prisma.EnumLanguageFilter<"User"> | $Enums.Language
+  expoPushToken?: Prisma.StringNullableFilter<"User"> | string | null
   isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -695,6 +720,7 @@ export type UserCreateWithoutBranchInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -712,6 +738,7 @@ export type UserUncheckedCreateWithoutBranchInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -753,6 +780,7 @@ export type UserCreateWithoutSessionsInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -771,6 +799,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -801,6 +830,7 @@ export type UserUpdateWithoutSessionsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -819,6 +849,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -833,6 +864,7 @@ export type UserCreateWithoutSalesInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -851,6 +883,7 @@ export type UserUncheckedCreateWithoutSalesInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -881,6 +914,7 @@ export type UserUpdateWithoutSalesInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -899,6 +933,7 @@ export type UserUncheckedUpdateWithoutSalesInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -913,6 +948,7 @@ export type UserCreateWithoutTransactionsInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -931,6 +967,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -961,6 +998,7 @@ export type UserUpdateWithoutTransactionsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -979,6 +1017,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -994,6 +1033,7 @@ export type UserCreateManyTenantInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1006,6 +1046,7 @@ export type UserUpdateWithoutTenantInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1023,6 +1064,7 @@ export type UserUncheckedUpdateWithoutTenantInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1039,6 +1081,7 @@ export type UserUncheckedUpdateManyWithoutTenantInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1052,6 +1095,7 @@ export type UserCreateManyBranchInput = {
   role?: $Enums.UserRole
   fullName: string
   language?: $Enums.Language
+  expoPushToken?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1064,6 +1108,7 @@ export type UserUpdateWithoutBranchInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1081,6 +1126,7 @@ export type UserUncheckedUpdateWithoutBranchInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1097,6 +1143,7 @@ export type UserUncheckedUpdateManyWithoutBranchInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  expoPushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1160,6 +1207,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   role?: boolean
   fullName?: boolean
   language?: boolean
+  expoPushToken?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1180,6 +1228,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   role?: boolean
   fullName?: boolean
   language?: boolean
+  expoPushToken?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1196,6 +1245,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   role?: boolean
   fullName?: boolean
   language?: boolean
+  expoPushToken?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1212,12 +1262,13 @@ export type UserSelectScalar = {
   role?: boolean
   fullName?: boolean
   language?: boolean
+  expoPushToken?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "phone" | "passwordHash" | "tenantId" | "branchId" | "role" | "fullName" | "language" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "phone" | "passwordHash" | "tenantId" | "branchId" | "role" | "fullName" | "language" | "expoPushToken" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.User$tenantArgs<ExtArgs>
   branch?: boolean | Prisma.User$branchArgs<ExtArgs>
@@ -1253,6 +1304,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     role: $Enums.UserRole
     fullName: string
     language: $Enums.Language
+    expoPushToken: string | null
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -1692,6 +1744,7 @@ export interface UserFieldRefs {
   readonly role: Prisma.FieldRef<"User", 'UserRole'>
   readonly fullName: Prisma.FieldRef<"User", 'String'>
   readonly language: Prisma.FieldRef<"User", 'Language'>
+  readonly expoPushToken: Prisma.FieldRef<"User", 'String'>
   readonly isActive: Prisma.FieldRef<"User", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>

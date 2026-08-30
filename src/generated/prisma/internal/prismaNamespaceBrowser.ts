@@ -140,6 +140,7 @@ export const UserScalarFieldEnum = {
   role: 'role',
   fullName: 'fullName',
   language: 'language',
+  expoPushToken: 'expoPushToken',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

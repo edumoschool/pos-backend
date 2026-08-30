@@ -33,13 +33,17 @@ WORKDIR /app
 COPY --from=builder /app/package*.json ./
 COPY prisma ./prisma/
 # Prisma 7 reads the migration connection string from prisma.config.ts only
-# (a `url` in the schema is rejected), so the config and its tsx runner must
-# be present at runtime, not just at build time.
+# (a `url` in the schema is rejected), so the config must be present at
+# runtime, not just at build time. It imports "prisma/config", which resolves
+# against node_modules — so the CLI has to be a real installed package here,
+# not one npx fetches into a temp directory.
 COPY prisma.config.ts ./
 RUN npm install --legacy-peer-deps --omit=dev \
-  && npm install --legacy-peer-deps --no-save \
+  && npm install --legacy-peer-deps --save-exact \
      prisma@$(node -p "require('./package.json').devDependencies.prisma.replace(/^[^0-9]*/,'')")
-RUN npx prisma generate
+# Call the local binary rather than npx: npx would ignore the pinned install
+# above and download the latest CLI instead.
+RUN ./node_modules/.bin/prisma generate
 
 # Copy built assets
 COPY --from=builder /app/dist ./dist
@@ -54,4 +58,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
 
 # Apply pending migrations, then start. `migrate deploy` only ever applies
 # migrations that have not run yet, so restarts are safe.
-CMD [ "sh", "-c", "npx prisma migrate deploy && npm run start:prod" ]
+CMD [ "sh", "-c", "./node_modules/.bin/prisma migrate deploy && npm run start:prod" ]

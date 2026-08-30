@@ -66,4 +66,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
 # against the live database and applies only the difference, so restarts are
 # safe. This project has no migration history: the schema is the source of
 # truth and is pushed directly.
-CMD [ "sh", "-c", "node node_modules/prisma/build/index.js db push --skip-generate && npm run start:prod" ]
+CMD [ "sh", "-c", "node node_modules/prisma/build/index.js db push && npm run start:prod" ]

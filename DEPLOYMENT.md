@@ -36,25 +36,37 @@ Set the branch to `master`.
 
 ## 3. Environment variables
 
-### Set the three domains
+### Set the six domain variables
 
 In the resource's Environment Variables tab:
 
-| Variable | Value |
-|---|---|
-| `SERVICE_FQDN_BACKEND_7000` | `po.impulselc.uz` |
-| `SERVICE_FQDN_MINIO_9000` | `s3.impulselc.uz` |
-| `SERVICE_FQDN_MINIO_9001` | `minio.impulselc.uz` |
+| Variable | Value | Used for |
+|---|---|---|
+| `SERVICE_FQDN_BACKEND_7000` | `po.impulselc.uz` | routing + TLS |
+| `SERVICE_FQDN_MINIO_9000` | `s3.impulselc.uz` | routing + TLS |
+| `SERVICE_FQDN_MINIO_9001` | `minio.impulselc.uz` | routing + TLS |
+| `BACKEND_DOMAIN` | `po.impulselc.uz` | Telegram webhook URL |
+| `MINIO_API_DOMAIN` | `s3.impulselc.uz` | `MINIO_SERVER_URL` |
+| `MINIO_CONSOLE_DOMAIN` | `minio.impulselc.uz` | `MINIO_BROWSER_REDIRECT_URL` |
 
-Hostname only — no `https://`, no trailing slash. The `_<PORT>` suffix tells
-Coolify which container port that domain routes to, and it generates the
-Traefik configuration and TLS certificate for each one. That is why this
-compose file has no `traefik.*` labels of its own.
+Hostname only — no `https://`, no trailing slash.
 
-Coolify derives `SERVICE_URL_BACKEND_7000` and `SERVICE_URL_MINIO_900x` from
-these automatically — the same value with `https://` in front. The compose
-file uses the URL form where a scheme is required (the Telegram webhook and
-MinIO's redirect URLs) and the FQDN form for routing.
+The `SERVICE_FQDN_*_<PORT>` keys drive routing: the `_<PORT>` suffix tells
+Coolify which container port the domain maps to, and it generates the Traefik
+configuration and certificate. That is why this compose file has no
+`traefik.*` labels.
+
+The plain `*_DOMAIN` keys are the same hostnames as values the app can read,
+so it can build `https://…` URLs. They duplicate the FQDNs deliberately:
+Coolify populates the matching `SERVICE_URL_*` keys only when it assigns the
+domain itself, and they resolve to a blank string when you set the domains by
+hand — which silently empties the webhook and MinIO URLs.
+
+> **Delete any stale `SERVICE_*` entries.** Coolify keeps generated variables
+> after the compose file stops referencing them, and will auto-assign
+> `sslip.io` wildcard domains to them. If you see `SERVICE_FQDN_MINIO`,
+> `SERVICE_URL_MINIOCONSOLE`, or any other name without a `_<PORT>` suffix,
+> remove it — those are leftovers and nothing reads them.
 
 ### Also set this
 

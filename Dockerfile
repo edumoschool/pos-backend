@@ -38,12 +38,18 @@ COPY prisma ./prisma/
 # against node_modules — so the CLI has to be a real installed package here,
 # not one npx fetches into a temp directory.
 COPY prisma.config.ts ./
+# Two installs: the production tree, then the prisma CLI on top of it.
+# --include=dev is required on the second one. ENV NODE_ENV=production makes
+# npm omit dev dependencies for every command, and because `prisma` is listed
+# under devDependencies npm then reports "up to date" and installs nothing,
+# leaving no binary behind.
 RUN npm install --legacy-peer-deps --omit=dev \
-  && npm install --legacy-peer-deps --save-exact \
-     prisma@$(node -p "require('./package.json').devDependencies.prisma.replace(/^[^0-9]*/,'')")
-# Call the local binary rather than npx: npx would ignore the pinned install
-# above and download the latest CLI instead.
-RUN ./node_modules/.bin/prisma generate
+  && npm install --legacy-peer-deps --include=dev --save-exact \
+     prisma@$(node -p "require('./package.json').devDependencies.prisma.replace(/^[^0-9]*/,'')") \
+  && test -x node_modules/prisma/build/index.js
+# Run the CLI through node against the package's own entry point: the
+# node_modules/.bin symlink is not always materialised in this layer.
+RUN node node_modules/prisma/build/index.js generate
 
 # Copy built assets
 COPY --from=builder /app/dist ./dist
@@ -58,4 +64,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
 
 # Apply pending migrations, then start. `migrate deploy` only ever applies
 # migrations that have not run yet, so restarts are safe.
-CMD [ "sh", "-c", "./node_modules/.bin/prisma migrate deploy && npm run start:prod" ]
+CMD [ "sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && npm run start:prod" ]

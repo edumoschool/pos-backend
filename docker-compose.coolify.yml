@@ -1,0 +1,123 @@
+# Coolify deployment: pos-backend + PostgreSQL + MinIO
+#
+# Deploy in Coolify as: New Resource -> Docker Compose, pointing at this file.
+#
+# Coolify generates values for any ${VAR} left unset, but ONLY for the magic
+# SERVICE_* names below (SERVICE_PASSWORD_*, SERVICE_USER_*, SERVICE_FQDN_*).
+# Every other variable must be set by hand in the resource's Environment
+# Variables tab before the first deploy — see DEPLOYMENT.md.
+#
+# Only `backend` and `minio` are reachable from outside; postgres has no
+# published ports and is reachable only over the internal compose network.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pos}
+      POSTGRES_USER: ${SERVICE_USER_POSTGRES}
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}
+      # Keeps initdb from depending on the host locale.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes:
+      - pos-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      # The -d/-U flags matter: without them pg_isready checks the wrong db
+      # and reports healthy before the app's database actually exists.
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${SERVICE_USER_POSTGRES} -d ${POSTGRES_DB:-pos}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${SERVICE_USER_MINIO}
+      MINIO_ROOT_PASSWORD: ${SERVICE_PASSWORD_MINIO}
+      # Public URL the S3 API is served on; used when MinIO builds redirects.
+      MINIO_SERVER_URL: ${SERVICE_FQDN_MINIO}
+      MINIO_BROWSER_REDIRECT_URL: ${SERVICE_FQDN_MINIOCONSOLE}
+    volumes:
+      - pos-minio-data:/data
+    healthcheck:
+      # MinIO serves this endpoint itself and the image ships no curl/wget,
+      # so the check is driven by the bundled binary rather than a shell tool.
+      test:
+        [
+          "CMD-SHELL",
+          "mc ready local 2>/dev/null || curl -fsS http://127.0.0.1:9000/minio/health/live || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    labels:
+      # S3 API on the main domain, web console on its own subdomain.
+      - traefik.enable=true
+      - traefik.http.routers.minio-api.rule=Host(`${MINIO_DOMAIN}`)
+      - traefik.http.routers.minio-api.entrypoints=https
+      - traefik.http.routers.minio-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.minio-api.service=minio-api
+      - traefik.http.services.minio-api.loadbalancer.server.port=9000
+      - traefik.http.routers.minio-console.rule=Host(`${MINIO_CONSOLE_DOMAIN}`)
+      - traefik.http.routers.minio-console.entrypoints=https
+      - traefik.http.routers.minio-console.tls.certresolver=letsencrypt
+      - traefik.http.routers.minio-console.service=minio-console
+      - traefik.http.services.minio-console.loadbalancer.server.port=9001
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 7000
+
+      # Both point at the same database. Prisma reads DATABASE_URL at runtime
+      # via the pg adapter; prisma.config.ts reads DIRECT_URL for migrations.
+      # There is no pgbouncer here, so they are identical.
+      DATABASE_URL: postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/${POSTGRES_DB:-pos}?schema=public
+      DIRECT_URL: postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/${POSTGRES_DB:-pos}?schema=public
+
+      JWT_SECRET: ${SERVICE_PASSWORD_JWT}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+
+      # Reached over the internal network, so plain HTTP on port 9000.
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: ${SERVICE_USER_MINIO}
+      MINIO_SECRET_KEY: ${SERVICE_PASSWORD_MINIO}
+      MINIO_BUCKET: ${MINIO_BUCKET:-pos-images}
+
+      # MinioService calls getOrThrow for the MINIO_* vars above and
+      # TelegramModule does the same for the bot token: the app will not
+      # boot if any of them is missing.
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_WEBHOOK_DOMAIN: ${SERVICE_FQDN_BACKEND}
+
+      EXPO_ACCESS_TOKEN: ${EXPO_ACCESS_TOKEN:-}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.backend.rule=Host(`${BACKEND_DOMAIN}`)
+      - traefik.http.routers.backend.entrypoints=https
+      - traefik.http.routers.backend.tls.certresolver=letsencrypt
+      - traefik.http.services.backend.loadbalancer.server.port=7000
+
+volumes:
+  pos-postgres-data:
+  pos-minio-data:

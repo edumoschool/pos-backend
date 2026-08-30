@@ -36,6 +36,14 @@ RUN npx prisma generate
 # Copy built assets
 COPY --from=builder /app/dist ./dist
 
+# curl is used by the container healthcheck
+RUN apk add --no-cache curl
+
 EXPOSE 7000
 
-CMD [ "npm", "run", "start:prod" ]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD curl -fsS "http://127.0.0.1:${PORT:-7000}/api/docs" -o /dev/null || exit 1
+
+# Apply pending migrations, then start. `migrate deploy` only ever applies
+# migrations that have not run yet, so restarts are safe.
+CMD [ "sh", "-c", "npx prisma migrate deploy && npm run start:prod" ]

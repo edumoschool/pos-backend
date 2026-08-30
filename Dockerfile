@@ -27,10 +27,18 @@ ENV NODE_ENV=production
 
 WORKDIR /app
 
-# Copy only production dependencies
+# Copy only production dependencies. `prisma` is a devDependency but the CLI
+# is needed at runtime for `migrate deploy`, so it is installed explicitly
+# after the --omit=dev pass rather than pulling in the whole dev tree.
 COPY --from=builder /app/package*.json ./
 COPY prisma ./prisma/
-RUN npm install --legacy-peer-deps --omit=dev
+# Prisma 7 reads the migration connection string from prisma.config.ts only
+# (a `url` in the schema is rejected), so the config and its tsx runner must
+# be present at runtime, not just at build time.
+COPY prisma.config.ts ./
+RUN npm install --legacy-peer-deps --omit=dev \
+  && npm install --legacy-peer-deps --no-save \
+     prisma@$(node -p "require('./package.json').devDependencies.prisma.replace(/^[^0-9]*/,'')")
 RUN npx prisma generate
 
 # Copy built assets

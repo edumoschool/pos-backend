@@ -68,6 +68,12 @@ hand — which silently empties the webhook and MinIO URLs.
 > `SERVICE_URL_MINIOCONSOLE`, or any other name without a `_<PORT>` suffix,
 > remove it — those are leftovers and nothing reads them.
 
+> **If a domain field reverts to a generated default after you save it**, or a
+> port has no field at all, the service is missing an `expose` entry for that
+> port. Coolify builds one domain field per exposed port; a `SERVICE_FQDN_*`
+> key for a port it does not know about is discarded. Both MinIO ports and the
+> backend port are declared with `expose:` in the compose file for this reason.
+
 ### Also set this
 
 | Variable | Example | Notes |

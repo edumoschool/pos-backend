@@ -52,6 +52,12 @@ services:
     image: minio/minio:latest
     restart: unless-stopped
     command: server /data --console-address ":9001"
+    # Both ports must be declared for Coolify to render a domain field per
+    # port. Without this it only picks up the image's own EXPOSE (9000) and
+    # the second domain silently reverts to a generated default.
+    expose:
+      - "9000"
+      - "9001"
     environment:
       # Declaring these two makes Coolify route 9000 (S3 API) and 9001
       # (web console) to their own domains and issue certificates for both.
@@ -84,6 +90,8 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    expose:
+      - "7000"
     depends_on:
       postgres:
         condition: service_healthy

@@ -14,7 +14,8 @@
     "tsBuildInfoFile": "./dist/tsconfig.build.tsbuildinfo",
     "skipLibCheck": true,
     "types": [
-      "node"
+      "node",
+      "jest"
     ],
     "ignoreDeprecations": "5.0",
     "strictNullChecks": false,

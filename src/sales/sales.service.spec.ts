@@ -1,4 +1,12 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+
+// NotificationsService pulls in expo-server-sdk, which ships ESM and cannot be
+// required by ts-jest. The collaborator is stubbed here anyway, so the module
+// is mocked to keep this a pure unit test of the sale logic.
+jest.mock('../notifications/notifications.service', () => ({
+  NotificationsService: class {},
+}));
+
 import { Prisma } from '../generated/prisma/client';
 import { SalesService } from './sales.service';
 

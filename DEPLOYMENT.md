@@ -15,9 +15,9 @@ will fail:
 
 | Record | Purpose |
 |---|---|
-| `api.example.com` | the backend API |
-| `s3.example.com` | MinIO S3 endpoint |
-| `console.example.com` | MinIO web console |
+| `po.impulselc.uz` | the backend API |
+| `s3.impulselc.uz` | MinIO S3 endpoint (image URLs) |
+| `minio.impulselc.uz` | MinIO web console |
 
 ## 2. Create the resource
 
@@ -36,28 +36,41 @@ Set the branch to `master`.
 
 ## 3. Environment variables
 
-Coolify auto-generates the `SERVICE_*` variables — leave them blank and it
-fills them in on first deploy. **Set the rest yourself** in the resource's
-Environment Variables tab.
+### Set the three domains
 
-### Generated for you (do not set)
+In the resource's Environment Variables tab:
+
+| Variable | Value |
+|---|---|
+| `SERVICE_FQDN_BACKEND_7000` | `po.impulselc.uz` |
+| `SERVICE_FQDN_MINIO_9000` | `s3.impulselc.uz` |
+| `SERVICE_FQDN_MINIO_9001` | `minio.impulselc.uz` |
+
+Hostname only — no `https://`, no trailing slash. The `_<PORT>` suffix tells
+Coolify which container port that domain routes to, and it generates the
+Traefik configuration and TLS certificate for each one. That is why this
+compose file has no `traefik.*` labels of its own.
+
+Coolify derives `SERVICE_URL_BACKEND_7000` and `SERVICE_URL_MINIO_900x` from
+these automatically — the same value with `https://` in front. The compose
+file uses the URL form where a scheme is required (the Telegram webhook and
+MinIO's redirect URLs) and the FQDN form for routing.
+
+### Also set this
+
+| Variable | Example | Notes |
+|---|---|---|
+| `TELEGRAM_BOT_TOKEN` | `123456:ABC-...` | **required — get it from @BotFather** |
+
+### Generated for you (leave blank)
 
 | Variable | What it becomes |
 |---|---|
 | `SERVICE_USER_POSTGRES` / `SERVICE_PASSWORD_POSTGRES` | Postgres credentials |
 | `SERVICE_USER_MINIO` / `SERVICE_PASSWORD_MINIO` | MinIO root creds + the app's S3 keys |
 | `SERVICE_PASSWORD_JWT` | `JWT_SECRET` |
-| `SERVICE_FQDN_BACKEND` | public backend URL, also the Telegram webhook domain |
-| `SERVICE_FQDN_MINIO` / `SERVICE_FQDN_MINIOCONSOLE` | MinIO public URLs |
 
-### You must set these
-
-| Variable | Example | Notes |
-|---|---|---|
-| `BACKEND_DOMAIN` | `api.example.com` | hostname only, no scheme |
-| `MINIO_DOMAIN` | `s3.example.com` | hostname only |
-| `MINIO_CONSOLE_DOMAIN` | `console.example.com` | hostname only |
-| `TELEGRAM_BOT_TOKEN` | `123456:ABC-...` | **required — the app will not boot without it** |
+Coolify generates these once and keeps them stable across deploys.
 
 ### Optional
 
@@ -125,8 +138,8 @@ mixing the two is what creates drift.
 
 ## 5. Verify
 
-- `https://api.example.com/api/docs` — Swagger UI
-- `https://console.example.com` — MinIO console, log in with the generated
+- `https://po.impulselc.uz/api/docs` — Swagger UI
+- `https://minio.impulselc.uz` — MinIO console, log in with the generated
   `SERVICE_USER_MINIO` / `SERVICE_PASSWORD_MINIO`
 - Confirm the `pos-images` bucket exists after the backend's first boot
 
@@ -139,7 +152,7 @@ mixing the two is what creates drift.
   an SSH tunnel rather than opening the port.
 - **The backend talks to MinIO internally** over `minio:9000` with
   `MINIO_USE_SSL=false`. Traffic never leaves the host, so TLS there would only
-  add overhead. The public `s3.example.com` route is for clients fetching
+  add overhead. The public `s3.impulselc.uz` route is for clients fetching
   images.
 - **`DATABASE_URL` and `DIRECT_URL` are identical.** Prisma reads the first at
   runtime through the pg adapter and the second for migrations. They would only

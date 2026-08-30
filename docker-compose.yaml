@@ -1,16 +1,25 @@
 # Coolify deployment: pos-backend + PostgreSQL + MinIO
 #
 # Deploy in Coolify as: New Resource -> Docker Compose, pointing at this repo.
-# Keep this file named docker-compose.yaml at the repo root: that is the path
-# Coolify reads by default.
+# The resource's "Docker Compose Location" must match this file's path and
+# extension exactly: /docker-compose.yaml (Coolify does not fall back to .yml).
 #
-# Coolify generates values for any ${VAR} left unset, but ONLY for the magic
-# SERVICE_* names below (SERVICE_PASSWORD_*, SERVICE_USER_*, SERVICE_FQDN_*).
-# Every other variable must be set by hand in the resource's Environment
-# Variables tab before the first deploy — see DEPLOYMENT.md.
+# Domains and secrets come from Coolify's magic SERVICE_* variables:
 #
-# Only `backend` and `minio` are reachable from outside; postgres has no
-# published ports and is reachable only over the internal compose network.
+#   SERVICE_FQDN_<SERVICE>_<PORT>  publishes that service's port on a domain
+#                                  AND generates the Traefik routing for it,
+#                                  so no traefik.* labels are needed here.
+#   SERVICE_URL_<SERVICE>          the same domain with the https:// scheme,
+#                                  for when the app needs a full URL.
+#   SERVICE_USER_* / SERVICE_PASSWORD_*  credentials Coolify generates once
+#                                  and then keeps stable across deploys.
+#
+# Set the three domains in Coolify's UI (see DEPLOYMENT.md):
+#   SERVICE_FQDN_BACKEND_7000  -> po.impulselc.uz
+#   SERVICE_FQDN_MINIO_9000    -> s3.impulselc.uz
+#   SERVICE_FQDN_MINIO_9001    -> minio.impulselc.uz
+#
+# Postgres publishes no ports and is reachable only on the internal network.
 
 services:
   postgres:
@@ -42,11 +51,15 @@ services:
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
+      # Declaring these two makes Coolify route 9000 (S3 API) and 9001
+      # (web console) to their own domains and issue certificates for both.
+      SERVICE_FQDN_MINIO_9000:
+      SERVICE_FQDN_MINIO_9001:
       MINIO_ROOT_USER: ${SERVICE_USER_MINIO}
       MINIO_ROOT_PASSWORD: ${SERVICE_PASSWORD_MINIO}
-      # Public URL the S3 API is served on; used when MinIO builds redirects.
-      MINIO_SERVER_URL: ${SERVICE_FQDN_MINIO}
-      MINIO_BROWSER_REDIRECT_URL: ${SERVICE_FQDN_MINIOCONSOLE}
+      # Public URLs MinIO uses when building redirects and presigned links.
+      MINIO_SERVER_URL: ${SERVICE_URL_MINIO_9000}
+      MINIO_BROWSER_REDIRECT_URL: ${SERVICE_URL_MINIO_9001}
     volumes:
       - pos-minio-data:/data
     healthcheck:
@@ -61,19 +74,6 @@ services:
       timeout: 5s
       retries: 10
       start_period: 20s
-    labels:
-      # S3 API on the main domain, web console on its own subdomain.
-      - traefik.enable=true
-      - traefik.http.routers.minio-api.rule=Host(`${MINIO_DOMAIN}`)
-      - traefik.http.routers.minio-api.entrypoints=https
-      - traefik.http.routers.minio-api.tls.certresolver=letsencrypt
-      - traefik.http.routers.minio-api.service=minio-api
-      - traefik.http.services.minio-api.loadbalancer.server.port=9000
-      - traefik.http.routers.minio-console.rule=Host(`${MINIO_CONSOLE_DOMAIN}`)
-      - traefik.http.routers.minio-console.entrypoints=https
-      - traefik.http.routers.minio-console.tls.certresolver=letsencrypt
-      - traefik.http.routers.minio-console.service=minio-console
-      - traefik.http.services.minio-console.loadbalancer.server.port=9001
 
   backend:
     build:
@@ -86,6 +86,8 @@ services:
       minio:
         condition: service_healthy
     environment:
+      # Publishes port 7000 on the backend domain and generates its routing.
+      SERVICE_FQDN_BACKEND_7000:
       NODE_ENV: production
       PORT: 7000
 
@@ -98,7 +100,9 @@ services:
       JWT_SECRET: ${SERVICE_PASSWORD_JWT}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
 
-      # Reached over the internal network, so plain HTTP on port 9000.
+      # Reached over the internal network, so plain HTTP on port 9000 —
+      # traffic never leaves the host. The public s3. domain is for clients
+      # fetching images directly.
       MINIO_ENDPOINT: minio
       MINIO_PORT: 9000
       MINIO_USE_SSL: "false"
@@ -110,15 +114,10 @@ services:
       # TelegramModule does the same for the bot token: the app will not
       # boot if any of them is missing.
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
-      TELEGRAM_WEBHOOK_DOMAIN: ${SERVICE_FQDN_BACKEND}
+      # Telegraf needs the scheme, so this is the URL form, not the FQDN.
+      TELEGRAM_WEBHOOK_DOMAIN: ${SERVICE_URL_BACKEND_7000}
 
       EXPO_ACCESS_TOKEN: ${EXPO_ACCESS_TOKEN:-}
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.backend.rule=Host(`${BACKEND_DOMAIN}`)
-      - traefik.http.routers.backend.entrypoints=https
-      - traefik.http.routers.backend.tls.certresolver=letsencrypt
-      - traefik.http.services.backend.loadbalancer.server.port=7000
 
 volumes:
   pos-postgres-data:

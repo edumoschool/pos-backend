@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateInventoryDto, UpdateInventoryDto } from './dto';
@@ -60,9 +61,9 @@ export class InventoryService {
     );
   }
 
-  async findOne(id: string) {
-    const inventory = await this.prisma.inventory.findUnique({
-      where: { id },
+  async findOne(id: string, tenantId: string) {
+    const inventory = await this.prisma.inventory.findFirst({
+      where: { id, tenantId },
       include: {
         product: { select: { id: true, name: true } },
         supplier: { select: { id: true, name: true } },
@@ -83,63 +84,66 @@ export class InventoryService {
     userId: string,
     dto: UpdateInventoryDto & { note?: string },
   ) {
-    const inventory = await this.findOne(id);
+    const inventory = await this.findOne(id, tenantId);
     const { note, quantity, ...rest } = dto as any;
 
-    const beforeQty = inventory.quantity;
+    // The stock write and its movement row are committed together, so an
+    // adjustment can never land without the ledger entry that explains it.
+    const { updated, moved } = await this.prisma.$transaction(async (tx) => {
+      const before = new Prisma.Decimal(inventory.quantity);
+      const changed =
+        quantity !== undefined && !before.equals(new Prisma.Decimal(quantity));
 
-    const updated = await this.prisma.inventory.update({
-      where: { id },
-      data: rest as any,
-      include: {
-        product: { select: { id: true, name: true } },
-        supplier: { select: { id: true, name: true } },
-      },
-    });
-
-    // Record a movement if quantity changed
-    if (quantity !== undefined && Number(quantity) !== Number(beforeQty)) {
-      const after = Number(quantity);
-      const before = Number(beforeQty);
-      const diff = after - before;
-      const type = diff > 0 ? 'in' : diff < 0 ? 'out' : 'adjustment';
-
-      await this.prisma.inventoryMovement.create({
-        data: {
-          inventoryId: id,
-          tenantId,
-          userId,
-          type,
-          quantity: Math.abs(diff),
-          before,
-          after,
-          note: note ?? null,
-        },
-      });
-
-      // Fire low-stock notification asynchronously
-      this.checkAndNotifyLowStock(tenantId, [inventory.productId]).catch(
-        (err) => this.logger.error('Failed to send low-stock notification', err),
-      );
-    }
-
-    // Re-fetch with updated quantity if it was changed
-    if (quantity !== undefined) {
-      return this.prisma.inventory.update({
+      const updated = await tx.inventory.update({
         where: { id },
-        data: { quantity },
+        data: {
+          ...(rest as any),
+          ...(quantity !== undefined && { quantity }),
+        },
         include: {
           product: { select: { id: true, name: true } },
           supplier: { select: { id: true, name: true } },
         },
       });
+
+      if (changed) {
+        const after = new Prisma.Decimal(quantity);
+        const diff = after.minus(before);
+        const type = diff.greaterThan(0)
+          ? 'in'
+          : diff.lessThan(0)
+            ? 'out'
+            : 'adjustment';
+
+        await tx.inventoryMovement.create({
+          data: {
+            inventoryId: id,
+            tenantId,
+            userId,
+            type,
+            quantity: diff.abs(),
+            before,
+            after,
+            note: note ?? null,
+          },
+        });
+      }
+
+      return { updated, moved: changed };
+    });
+
+    if (moved) {
+      // Fire low-stock notification asynchronously, after the commit.
+      this.checkAndNotifyLowStock(tenantId, [inventory.productId]).catch(
+        (err) => this.logger.error('Failed to send low-stock notification', err),
+      );
     }
 
     return updated;
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, tenantId: string) {
+    await this.findOne(id, tenantId);
     return this.prisma.inventory.delete({ where: { id } });
   }
 

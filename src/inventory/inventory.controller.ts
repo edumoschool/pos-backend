@@ -46,8 +46,11 @@ export class InventoryController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get inventory record by ID (includes last 20 movements)' })
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.service.findOne(id);
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser('tenantId') tenantId: string,
+  ) {
+    return this.service.findOne(id, tenantId);
   }
 
   @Patch(':id')
@@ -63,7 +66,10 @@ export class InventoryController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an inventory record' })
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.service.remove(id);
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser('tenantId') tenantId: string,
+  ) {
+    return this.service.remove(id, tenantId);
   }
 }

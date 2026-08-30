@@ -5,6 +5,7 @@ import {
   NotFoundException,
   Optional,
 } from '@nestjs/common';
+import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { TelegramService } from '../telegram/telegram.service';
@@ -69,7 +70,7 @@ export class SalesService {
           );
         }
 
-        if (Number(inventory.quantity) < item.quantity) {
+        if (new Prisma.Decimal(inventory.quantity).lessThan(item.quantity)) {
           throw new BadRequestException(
             `Insufficient stock for "${product.name}": available ${inventory.quantity}, requested ${item.quantity}`,
           );
@@ -77,14 +78,20 @@ export class SalesService {
       }
 
       // ── 2. Compute totals ─────────────────────────────────────────
-      let totalAmount = 0;
+      // All money is computed with Decimal: these values are persisted to
+      // Decimal(12,2) columns and float arithmetic loses precision on them.
+      let totalAmount = new Prisma.Decimal(0);
 
       const itemsData = dto.items.map((item) => {
         const product = productMap.get(item.productId)!;
-        const unitPrice = item.unitPrice ?? Number(product.sellingPrice);
-        const costPrice = Number(product.inventory[0].costPrice || product.costPrice);
-        const totalPrice = unitPrice * item.quantity;
-        totalAmount += totalPrice;
+        const unitPrice = new Prisma.Decimal(
+          item.unitPrice ?? product.sellingPrice,
+        );
+        const costPrice = new Prisma.Decimal(
+          product.inventory[0].costPrice || product.costPrice,
+        );
+        const totalPrice = unitPrice.times(item.quantity);
+        totalAmount = totalAmount.plus(totalPrice);
 
         return {
           productId: item.productId,
@@ -95,18 +102,18 @@ export class SalesService {
         };
       });
 
-      totalAmount = totalAmount - discount;
-      const paidAmount = dto.paidAmount;
-      const debtAmount = Math.max(0, totalAmount - paidAmount);
-      const status = debtAmount > 0 ? 'debt' : 'completed';
+      totalAmount = totalAmount.minus(discount);
+      const paidAmount = new Prisma.Decimal(dto.paidAmount);
+      const debtAmount = Prisma.Decimal.max(0, totalAmount.minus(paidAmount));
+      const status = debtAmount.greaterThan(0) ? 'debt' : 'completed';
 
-      if (paidAmount > totalAmount) {
+      if (paidAmount.greaterThan(totalAmount)) {
         throw new BadRequestException(
           `Paid amount (${paidAmount}) cannot exceed total amount (${totalAmount})`,
         );
       }
 
-      if (debtAmount > 0 && !dto.clientId) {
+      if (debtAmount.greaterThan(0) && !dto.clientId) {
         throw new BadRequestException(
           'A client must be specified when paidAmount is less than the total (debt sale)',
         );
@@ -135,15 +142,31 @@ export class SalesService {
       });
 
       // ── 4. Decrement inventory + record movements ──────────────────
+      // The decrement is guarded by `quantity: { gte }` so that two concurrent
+      // sales of the same product cannot both pass the check above and drive
+      // stock negative. A losing race matches 0 rows and rolls the sale back.
       for (const item of dto.items) {
         const inventory = productMap.get(item.productId)!.inventory[0];
-        const before = Number(inventory.quantity);
-        const after = before - item.quantity;
+        const product = productMap.get(item.productId)!;
 
-        await tx.inventory.update({
-          where: { id: inventory.id },
-          data: { quantity: after },
+        const result = await tx.inventory.updateMany({
+          where: { id: inventory.id, quantity: { gte: item.quantity } },
+          data: { quantity: { decrement: item.quantity } },
         });
+
+        if (result.count === 0) {
+          throw new BadRequestException(
+            `Insufficient stock for "${product.name}": another sale consumed it concurrently`,
+          );
+        }
+
+        const updatedInventory = await tx.inventory.findUniqueOrThrow({
+          where: { id: inventory.id },
+          select: { quantity: true },
+        });
+
+        const after = new Prisma.Decimal(updatedInventory.quantity);
+        const before = after.plus(item.quantity);
 
         await tx.inventoryMovement.create({
           data: {
@@ -161,7 +184,7 @@ export class SalesService {
       }
 
       // ── 5. Sync ClientTransaction if client + debt exists ──────────
-      if (dto.clientId && debtAmount > 0) {
+      if (dto.clientId && debtAmount.greaterThan(0)) {
         await tx.clientTransaction.create({
           data: {
             tenantId,
@@ -276,6 +299,18 @@ export class SalesService {
     }
 
     return this.prisma.$transaction(async (tx) => {
+      // Re-assert the status inside the transaction so two concurrent cancels
+      // cannot both restore stock and both reverse the debt. Only the request
+      // that actually flips the row away from 'cancelled' proceeds.
+      const claimed = await tx.sale.updateMany({
+        where: { id, tenantId, status: { not: 'cancelled' } },
+        data: { status: 'cancelled' },
+      });
+
+      if (claimed.count === 0) {
+        throw new BadRequestException('Sale is already cancelled');
+      }
+
       // Restore inventory for each item
       for (const item of sale.items) {
         const inventory = await tx.inventory.findFirst({
@@ -283,13 +318,18 @@ export class SalesService {
         });
 
         if (inventory) {
-          const before = Number(inventory.quantity);
-          const after = before + Number(item.quantity);
-
           await tx.inventory.update({
             where: { id: inventory.id },
-            data: { quantity: after },
+            data: { quantity: { increment: item.quantity } },
           });
+
+          const restored = await tx.inventory.findUniqueOrThrow({
+            where: { id: inventory.id },
+            select: { quantity: true },
+          });
+
+          const after = new Prisma.Decimal(restored.quantity);
+          const before = after.minus(item.quantity);
 
           await tx.inventoryMovement.create({
             data: {
@@ -297,7 +337,7 @@ export class SalesService {
               tenantId,
               userId,
               type: 'in',
-              quantity: Number(item.quantity),
+              quantity: item.quantity,
               before,
               after,
               note: `Cancelled sale #${id}`,
@@ -307,7 +347,7 @@ export class SalesService {
       }
 
       // If there was client debt, create an offsetting ClientTransaction (income = debt reversed)
-      if (sale.clientId && Number(sale.debtAmount) > 0) {
+      if (sale.clientId && new Prisma.Decimal(sale.debtAmount).greaterThan(0)) {
         await tx.clientTransaction.create({
           data: {
             tenantId,
@@ -322,9 +362,9 @@ export class SalesService {
         });
       }
 
-      return tx.sale.update({
+      // Status was already set by the claim above; just return the fresh row.
+      return tx.sale.findUniqueOrThrow({
         where: { id },
-        data: { status: 'cancelled' },
         include: SALE_INCLUDE,
       });
     });

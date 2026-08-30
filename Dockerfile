@@ -28,11 +28,11 @@ ENV NODE_ENV=production
 WORKDIR /app
 
 # Copy only production dependencies. `prisma` is a devDependency but the CLI
-# is needed at runtime for `migrate deploy`, so it is installed explicitly
+# is needed at runtime for `db push`, so it is installed explicitly
 # after the --omit=dev pass rather than pulling in the whole dev tree.
 COPY --from=builder /app/package*.json ./
 COPY prisma ./prisma/
-# Prisma 7 reads the migration connection string from prisma.config.ts only
+# Prisma 7 reads the database connection string from prisma.config.ts only
 # (a `url` in the schema is rejected), so the config must be present at
 # runtime, not just at build time. It imports "prisma/config", which resolves
 # against node_modules — so the CLI has to be a real installed package here,
@@ -62,6 +62,8 @@ EXPOSE 7000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
   CMD curl -fsS "http://127.0.0.1:${PORT:-7000}/api/docs" -o /dev/null || exit 1
 
-# Apply pending migrations, then start. `migrate deploy` only ever applies
-# migrations that have not run yet, so restarts are safe.
-CMD [ "sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && npm run start:prod" ]
+# Sync the schema to the database, then start. `db push` diffs the schema
+# against the live database and applies only the difference, so restarts are
+# safe. This project has no migration history: the schema is the source of
+# truth and is pushed directly.
+CMD [ "sh", "-c", "node node_modules/prisma/build/index.js db push --skip-generate && npm run start:prod" ]

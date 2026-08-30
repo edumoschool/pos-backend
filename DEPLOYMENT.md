@@ -141,45 +141,30 @@ Point these at the Coolify host before deploying, or TLS issuance fails:
 
 ---
 
-## 5. Database migrations
+## 5. Database schema
 
-The container runs `prisma migrate deploy` before starting the app, so schema
-changes apply on deploy. It only runs migrations that have not run yet, making
-restarts and redeploys safe.
+The container runs `prisma db push` before starting the app, so schema changes
+apply on deploy. `db push` diffs `prisma/schema.prisma` against the live
+database and applies only the difference, making restarts and redeploys safe.
+
+There is no migration history in this project — the schema file is the single
+source of truth.
 
 ### Fresh database
 
-Nothing to do. The baseline migration creates all 23 tables, 10 enums,
-35 indexes and 44 foreign keys on the first deploy.
-
-### Existing database
-
-If the database already has tables created by `prisma db push`, Prisma has no
-migration history for them and the first `migrate deploy` **will fail** — it
-tries to create tables that already exist.
-
-Mark the baseline as already-applied once, from inside the running container
-or with the production URL set locally:
-
-```bash
-node node_modules/prisma/build/index.js migrate resolve \
-  --applied 00000000000000_baseline
-```
-
-This only writes a row to `_prisma_migrations`; it does not touch data.
-
-> Verify the baseline matches your live schema first. It includes 29 indexes
-> added recently — if the live database predates those, apply them separately.
+Nothing to do. The first deploy creates every table, enum, index and foreign
+key defined in the schema.
 
 ### Adding a schema change later
 
-```bash
-npx prisma migrate dev --name add_something   # locally, creates the migration
-git commit && push                            # deploy applies it
-```
+Edit `prisma/schema.prisma`, commit, and deploy — the change is pushed on
+container start.
 
-Stop using `prisma db push` against production once migrations are in play —
-mixing the two creates drift.
+> **Destructive changes need a manual step.** If a change drops or narrows a
+> column, `db push` asks for confirmation, and with no TTY in the container it
+> aborts instead — blocking startup. Apply those yourself against the database
+> first, or run the push locally with `--accept-data-loss`, which proceeds and
+> discards the affected data.
 
 ---
 
@@ -195,11 +180,11 @@ mixing the two creates drift.
 
 - **Start order.** The backend retries its MinIO bucket check ten times with a
   3s backoff, so MinIO starting slowly is tolerated. Postgres is not retried in
-  the same way: `migrate deploy` needs a ready server, so bring the database up
+  the same way: `db push` needs a ready server, so bring the database up
   before the backend.
 - **`DATABASE_URL` and `DIRECT_URL` are identical.** Prisma reads the first at
-  runtime through the pg adapter and the second for migrations. They would only
-  differ behind a connection pooler such as pgbouncer.
+  runtime through the pg adapter and the second for schema pushes. They would
+  only differ behind a connection pooler such as pgbouncer.
 - **Prisma CLI in the image.** `prisma` is a devDependency, and
   `ENV NODE_ENV=production` makes npm skip dev packages on every install — so
   the Dockerfile installs it with `--include=dev` and invokes it as

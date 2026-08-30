@@ -1,7 +1,7 @@
 # Coolify deployment: pos-backend + PostgreSQL + MinIO
 #
 # Deploy in Coolify as: New Resource -> Docker Compose, pointing at this repo.
-# Keep this file named docker-compose.yml at the repo root: that is the path
+# Keep this file named docker-compose.yaml at the repo root: that is the path
 # Coolify reads by default.
 #
 # Coolify generates values for any ${VAR} left unset, but ONLY for the magic

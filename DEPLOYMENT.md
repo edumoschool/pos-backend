@@ -23,11 +23,14 @@ will fail:
 
 In Coolify: **New Resource → Docker Compose**, point it at this repository.
 
-The file is named `docker-compose.yml` at the repo root, which is what Coolify
-looks for by default — leave the "Docker Compose Location" field as
-`/docker-compose.yml`. (A non-default name such as `docker-compose.coolify.yml`
-makes Coolify fail with "Failed to read the Docker Compose file from the
-repository" unless that field is updated to match.)
+The file is named `docker-compose.yaml` at the repo root, and the resource's
+"Docker Compose Location" field must match it exactly — including the
+extension. Coolify treats `.yaml` and `.yml` as different paths and does not
+fall back from one to the other, so a mismatch fails with either "Failed to
+read the Docker Compose file from the repository" or "Docker Compose file not
+found at: /docker-compose.yaml".
+
+If you rename the file, update that field to match (or vice versa).
 
 Set the branch to `master`.
 

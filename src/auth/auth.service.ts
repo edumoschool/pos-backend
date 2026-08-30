@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { SseService } from './sse.service';
 import { LoginDto, RegisterDto } from './dto';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private sseService: SseService,
   ) {}
 
   async register(dto: RegisterDto, ip?: string, userAgent?: string) {
@@ -87,10 +89,11 @@ export class AuthService {
   }
 
   async logout(sessionId: string) {
-    await this.prisma.session.update({
+    const session = await this.prisma.session.update({
       where: { id: sessionId },
       data: { isRevoked: true },
     });
+    this.sseService.emitSessionRevoked(session.userId, sessionId);
     return { message: 'Logged out successfully' };
   }
 
@@ -99,6 +102,7 @@ export class AuthService {
       where: { userId, isRevoked: false },
       data: { isRevoked: true },
     });
+    this.sseService.emitAllSessionsRevoked(userId);
     return { message: 'All sessions revoked successfully' };
   }
 
@@ -131,6 +135,7 @@ export class AuthService {
       where: { id: sessionId },
       data: { isRevoked: true },
     });
+    this.sseService.emitSessionRevoked(userId, sessionId);
     return { message: 'Session revoked successfully' };
   }
 

@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { UnitsService } from './units.service';
 import { CreateUnitDto, UpdateUnitDto } from './dto';
 import { CurrentUser } from '../auth/decorators';
@@ -18,8 +18,14 @@ export class UnitsController {
 
   @Get()
   @ApiOperation({ summary: 'List all units' })
-  findAll(@CurrentUser('tenantId') tenantId: string) {
-    return this.service.findAll(tenantId);
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  findAll(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    return this.service.findAll(tenantId, +page, +limit);
   }
 
   @Get(':id')

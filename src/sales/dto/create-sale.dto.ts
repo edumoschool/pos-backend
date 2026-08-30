@@ -1,69 +1,72 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsUUID, IsOptional, IsString, IsNumber, IsEnum, IsArray, ValidateNested, Min } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+  ValidateNested,
+  ArrayMinSize,
+} from 'class-validator';
 import { Type } from 'class-transformer';
+import { SaleItemDto } from './sale-item.dto';
 
-export class CreateSaleItemDto {
-  @ApiProperty()
-  @IsUUID()
-  @IsNotEmpty()
-  productId: string;
+export enum PaymentMethod {
+  cash = 'cash',
+  card = 'card',
+  transfer = 'transfer',
+  other = 'other',
+}
 
-  @ApiProperty({ example: 2 })
-  @IsNumber()
-  @Min(0.01)
-  @Type(() => Number)
-  quantity: number;
-
-  @ApiProperty({ example: 999.99 })
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  unitPrice: number;
+export enum Currency {
+  UZS = 'UZS',
+  USD = 'USD',
 }
 
 export class CreateSaleDto {
-  @ApiProperty()
-  @IsUUID()
-  @IsNotEmpty()
-  branchId: string;
+  @ApiProperty({ type: [SaleItemDto], description: 'Line items (min 1)' })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => SaleItemDto)
+  items: SaleItemDto[];
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 'uuid', description: 'Client ID — omit for walk-in/anonymous sale' })
   @IsOptional()
   @IsUUID()
   clientId?: string;
 
-  @ApiPropertyOptional({ example: 0 })
+  @ApiProperty({ enum: PaymentMethod, example: PaymentMethod.cash })
+  @IsEnum(PaymentMethod)
+  paymentMethod: PaymentMethod;
+
+  @ApiPropertyOptional({ enum: Currency, default: Currency.UZS })
+  @IsOptional()
+  @IsEnum(Currency)
+  currency?: Currency;
+
+  @ApiProperty({ example: 1000, description: 'Amount actually paid now (0 = full debt, equal to total = fully paid)' })
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  paidAmount: number;
+
+  @ApiPropertyOptional({ example: 50, default: 0, description: 'Flat discount off the total' })
   @IsOptional()
   @IsNumber()
   @Min(0)
   @Type(() => Number)
-  discountAmount?: number;
+  discount?: number;
 
-  @ApiPropertyOptional({ enum: ['cash', 'card', 'transfer', 'other'], default: 'cash' })
-  @IsOptional()
-  @IsEnum(['cash', 'card', 'transfer', 'other'])
-  paymentMethod?: string;
-
-  @ApiPropertyOptional({ example: 0 })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  paidAmount?: number;
-
-  @ApiPropertyOptional({ enum: ['pending', 'partial', 'paid'], default: 'auto-calculated' })
-  @IsOptional()
-  @IsEnum(['pending', 'partial', 'paid'])
-  paymentStatus?: 'pending' | 'partial' | 'paid';
-
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 'Wholesale deal' })
   @IsOptional()
   @IsString()
-  notes?: string;
+  note?: string;
 
-  @ApiProperty({ type: [CreateSaleItemDto] })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateSaleItemDto)
-  items: CreateSaleItemDto[];
+  @ApiPropertyOptional({ example: 'uuid', description: 'Branch ID' })
+  @IsOptional()
+  @IsUUID()
+  branchId?: string;
 }

@@ -48,6 +48,28 @@ export class MinioService implements OnModuleInit {
     return objectName;
   }
 
+  async uploadReport(
+    file: Buffer,
+    fileName: string,
+    contentType: string,
+  ): Promise<string> {
+    const objectName = `reports/${Date.now()}-${fileName}`;
+
+    await this.client.putObject(
+      this.bucketName,
+      objectName,
+      file,
+      file.length,
+      { 'Content-Type': contentType },
+    );
+
+    return objectName;
+  }
+
+  async getFileUrl(objectName: string, expirySeconds = 3600): Promise<string> {
+    return this.client.presignedGetObject(this.bucketName, objectName, expirySeconds);
+  }
+
   async getImageUrl(objectName: string): Promise<string> {
     return this.client.presignedGetObject(this.bucketName, objectName, 3600);
   }

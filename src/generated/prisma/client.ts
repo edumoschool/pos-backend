@@ -29,8 +29,8 @@ export * from "./enums"
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more SubscriptionPlans
- * const subscriptionPlans = await prisma.subscriptionPlan.findMany()
+ * // Fetch zero or more ExchangeRates
+ * const exchangeRates = await prisma.exchangeRate.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -39,6 +39,11 @@ export const PrismaClient = $Class.getPrismaClientClass()
 export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts extends Prisma.PrismaClientOptions["omit"] = Prisma.PrismaClientOptions["omit"], ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = $Class.PrismaClient<LogOpts, OmitOpts, ExtArgs>
 export { Prisma }
 
+/**
+ * Model ExchangeRate
+ * 
+ */
+export type ExchangeRate = Prisma.ExchangeRateModel
 /**
  * Model SubscriptionPlan
  * 
@@ -75,6 +80,11 @@ export type Unit = Prisma.UnitModel
  */
 export type Category = Prisma.CategoryModel
 /**
+ * Model BrandCategory
+ * 
+ */
+export type BrandCategory = Prisma.BrandCategoryModel
+/**
  * Model Product
  * 
  */
@@ -85,10 +95,50 @@ export type Product = Prisma.ProductModel
  */
 export type Inventory = Prisma.InventoryModel
 /**
+ * Model InventoryMovement
+ * 
+ */
+export type InventoryMovement = Prisma.InventoryMovementModel
+/**
  * Model Client
  * 
  */
 export type Client = Prisma.ClientModel
+/**
+ * Model Supplier
+ * 
+ */
+export type Supplier = Prisma.SupplierModel
+/**
+ * Model ClientTransaction
+ * 
+ */
+export type ClientTransaction = Prisma.ClientTransactionModel
+/**
+ * Model SupplierTransaction
+ * 
+ */
+export type SupplierTransaction = Prisma.SupplierTransactionModel
+/**
+ * Model ExpenseCategory
+ * 
+ */
+export type ExpenseCategory = Prisma.ExpenseCategoryModel
+/**
+ * Model IncomeCategory
+ * 
+ */
+export type IncomeCategory = Prisma.IncomeCategoryModel
+/**
+ * Model Transaction
+ * 
+ */
+export type Transaction = Prisma.TransactionModel
+/**
+ * Model Report
+ * 
+ */
+export type Report = Prisma.ReportModel
 /**
  * Model Sale
  * 
@@ -100,17 +150,7 @@ export type Sale = Prisma.SaleModel
  */
 export type SaleItem = Prisma.SaleItemModel
 /**
- * Model Payment
+ * Model TelegramUser
  * 
  */
-export type Payment = Prisma.PaymentModel
-/**
- * Model ExpenseCategory
- * 
- */
-export type ExpenseCategory = Prisma.ExpenseCategoryModel
-/**
- * Model Transaction
- * 
- */
-export type Transaction = Prisma.TransactionModel
+export type TelegramUser = Prisma.TelegramUserModel

@@ -1,6 +1,8 @@
-import { Controller, Post, Body, Get, HttpCode, HttpStatus, Req, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Post, Body, Get, HttpCode, HttpStatus, Req, Param, Delete, ParseUUIDPipe, Sse, MessageEvent } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { SseService } from './sse.service';
 import { LoginDto, RegisterDto } from './dto';
 import { Public, CurrentUser } from './decorators';
 import { Request } from 'express';
@@ -8,7 +10,10 @@ import { Request } from 'express';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private sseService: SseService,
+  ) {}
 
   @Public()
   @Post('register')
@@ -66,5 +71,15 @@ export class AuthController {
     @Param('id', ParseUUIDPipe) sessionId: string,
   ) {
     return this.authService.revokeSession(userId, sessionId);
+  }
+
+  @Sse('events')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'SSE stream for session/user status events (force logout)' })
+  events(
+    @CurrentUser('userId') userId: string,
+    @CurrentUser('sessionId') sessionId: string,
+  ): Observable<MessageEvent> {
+    return this.sseService.subscribe(userId, sessionId);
   }
 }

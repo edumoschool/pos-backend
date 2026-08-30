@@ -1,6 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, IsNumber, IsBoolean, IsUUID, Min } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsNumber, IsBoolean, IsUUID, IsEnum, Min } from 'class-validator';
 import { Type } from 'class-transformer';
+
+export enum Currency {
+  UZS = 'UZS',
+  USD = 'USD',
+}
 
 export class CreateProductDto {
   @ApiProperty({ example: 'iPhone 15' })
@@ -21,17 +26,12 @@ export class CreateProductDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()
+  brandCategoryId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   unitId?: string;
-
-  @ApiPropertyOptional({ example: 'SKU-001' })
-  @IsOptional()
-  @IsString()
-  sku?: string;
-
-  @ApiPropertyOptional({ example: '1234567890123' })
-  @IsOptional()
-  @IsString()
-  barcode?: string;
 
   @ApiPropertyOptional({ example: 800.00 })
   @IsOptional()
@@ -46,6 +46,11 @@ export class CreateProductDto {
   @Min(0)
   @Type(() => Number)
   sellingPrice?: number;
+
+  @ApiPropertyOptional({ enum: Currency, default: Currency.UZS })
+  @IsOptional()
+  @IsEnum(Currency)
+  currency?: Currency;
 
   @ApiPropertyOptional({ example: 'https://example.com/image.jpg' })
   @IsOptional()

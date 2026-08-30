@@ -18,6 +18,11 @@ export { Prisma }
 export * as $Enums from './enums'
 export * from './enums';
 /**
+ * Model ExchangeRate
+ * 
+ */
+export type ExchangeRate = Prisma.ExchangeRateModel
+/**
  * Model SubscriptionPlan
  * 
  */
@@ -53,6 +58,11 @@ export type Unit = Prisma.UnitModel
  */
 export type Category = Prisma.CategoryModel
 /**
+ * Model BrandCategory
+ * 
+ */
+export type BrandCategory = Prisma.BrandCategoryModel
+/**
  * Model Product
  * 
  */
@@ -63,10 +73,50 @@ export type Product = Prisma.ProductModel
  */
 export type Inventory = Prisma.InventoryModel
 /**
+ * Model InventoryMovement
+ * 
+ */
+export type InventoryMovement = Prisma.InventoryMovementModel
+/**
  * Model Client
  * 
  */
 export type Client = Prisma.ClientModel
+/**
+ * Model Supplier
+ * 
+ */
+export type Supplier = Prisma.SupplierModel
+/**
+ * Model ClientTransaction
+ * 
+ */
+export type ClientTransaction = Prisma.ClientTransactionModel
+/**
+ * Model SupplierTransaction
+ * 
+ */
+export type SupplierTransaction = Prisma.SupplierTransactionModel
+/**
+ * Model ExpenseCategory
+ * 
+ */
+export type ExpenseCategory = Prisma.ExpenseCategoryModel
+/**
+ * Model IncomeCategory
+ * 
+ */
+export type IncomeCategory = Prisma.IncomeCategoryModel
+/**
+ * Model Transaction
+ * 
+ */
+export type Transaction = Prisma.TransactionModel
+/**
+ * Model Report
+ * 
+ */
+export type Report = Prisma.ReportModel
 /**
  * Model Sale
  * 
@@ -78,17 +128,7 @@ export type Sale = Prisma.SaleModel
  */
 export type SaleItem = Prisma.SaleItemModel
 /**
- * Model Payment
+ * Model TelegramUser
  * 
  */
-export type Payment = Prisma.PaymentModel
-/**
- * Model ExpenseCategory
- * 
- */
-export type ExpenseCategory = Prisma.ExpenseCategoryModel
-/**
- * Model Transaction
- * 
- */
-export type Transaction = Prisma.TransactionModel
+export type TelegramUser = Prisma.TelegramUserModel

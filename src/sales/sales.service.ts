@@ -1,234 +1,428 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  Optional,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateSaleDto, UpdateSaleDto } from './dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { TelegramService } from '../telegram/telegram.service';
+import { CreateSaleDto } from './dto';
+import { paginateParams, paginated } from '../common/helpers/paginate';
+
+const SALE_INCLUDE = {
+  items: {
+    include: {
+      product: { select: { id: true, name: true, unit: true } },
+    },
+  },
+  client: { select: { id: true, fullName: true, phone: true } },
+  user: { select: { id: true, fullName: true } },
+  branch: { select: { id: true, name: true } },
+} as const;
 
 @Injectable()
 export class SalesService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(SalesService.name);
 
-  async create(tenantId: string, branchId: string, sellerId: string, dto: CreateSaleDto) {
-    const items = dto.items.map((item) => {
-      const totalPrice = item.quantity * item.unitPrice;
-      return { ...item, totalPrice };
-    });
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+    @Optional() private telegram: TelegramService,
+  ) {}
 
-    const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const discountAmount = dto.discountAmount ?? 0;
-    const finalAmount = totalAmount - discountAmount;
-    const paidAmount = dto.paidAmount ?? 0;
+  // ─── Create ──────────────────────────────────────────────────────────
 
-    let paymentStatus: 'pending' | 'partial' | 'paid' = 'pending';
-    if (dto.paymentStatus) {
-      paymentStatus = dto.paymentStatus;
-    } else if (paidAmount >= finalAmount) {
-      paymentStatus = 'paid';
-    } else if (paidAmount > 0) {
-      paymentStatus = 'partial';
-    }
-
-    const productIds = items.map((item) => item.productId);
-    const existingProducts = await this.prisma.product.findMany({
-      where: { id: { in: productIds }, tenantId },
-      select: { id: true },
-    });
-    const existingIds = new Set(existingProducts.map((p) => p.id));
-    const missingIds = productIds.filter((id) => !existingIds.has(id));
-    if (missingIds.length > 0) {
-      throw new NotFoundException(`Products not found: ${missingIds.join(', ')}`);
-    }
+  async create(tenantId: string, userId: string, dto: CreateSaleDto) {
+    const currency = (dto.currency ?? 'UZS') as any;
+    const discount = dto.discount ?? 0;
 
     return this.prisma.$transaction(async (tx) => {
-      const sale = await tx.sale.create({
-        data: {
-          tenantId,
-          branchId,
-          sellerId,
-          clientId: dto.clientId,
-          totalAmount,
-          discountAmount,
-          finalAmount,
-          paidAmount,
-          paymentStatus,
-          notes: dto.notes,
-          items: {
-            create: items.map((item) => ({
-              productId: item.productId,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-              totalPrice: item.totalPrice,
-            })),
-          },
-        },
+      // ── 1. Validate products & stock ──────────────────────────────
+      const productIds = dto.items.map((i) => i.productId);
+
+      const products = await tx.product.findMany({
+        where: { id: { in: productIds }, tenantId, isActive: true },
         include: {
-          items: { include: { product: { select: { id: true, name: true } } } },
-          client: true,
-          seller: { select: { id: true, fullName: true } },
+          inventory: { where: { tenantId } },
         },
       });
 
-      // Create payment if paid
-      if (paidAmount > 0) {
-        await tx.payment.create({
+      if (products.length !== productIds.length) {
+        const foundIds = products.map((p) => p.id);
+        const missing = productIds.filter((id) => !foundIds.includes(id));
+        throw new NotFoundException(
+          `Products not found or inactive: ${missing.join(', ')}`,
+        );
+      }
+
+      const productMap = new Map(products.map((p) => [p.id, p]));
+
+      for (const item of dto.items) {
+        const product = productMap.get(item.productId)!;
+        const inventory = product.inventory[0];
+
+        if (!inventory) {
+          throw new BadRequestException(
+            `No inventory record for product "${product.name}"`,
+          );
+        }
+
+        if (Number(inventory.quantity) < item.quantity) {
+          throw new BadRequestException(
+            `Insufficient stock for "${product.name}": available ${inventory.quantity}, requested ${item.quantity}`,
+          );
+        }
+      }
+
+      // ── 2. Compute totals ─────────────────────────────────────────
+      let totalAmount = 0;
+
+      const itemsData = dto.items.map((item) => {
+        const product = productMap.get(item.productId)!;
+        const unitPrice = item.unitPrice ?? Number(product.sellingPrice);
+        const costPrice = Number(product.inventory[0].costPrice || product.costPrice);
+        const totalPrice = unitPrice * item.quantity;
+        totalAmount += totalPrice;
+
+        return {
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice,
+          costPrice,
+          totalPrice,
+        };
+      });
+
+      totalAmount = totalAmount - discount;
+      const paidAmount = dto.paidAmount;
+      const debtAmount = Math.max(0, totalAmount - paidAmount);
+      const status = debtAmount > 0 ? 'debt' : 'completed';
+
+      if (paidAmount > totalAmount) {
+        throw new BadRequestException(
+          `Paid amount (${paidAmount}) cannot exceed total amount (${totalAmount})`,
+        );
+      }
+
+      if (debtAmount > 0 && !dto.clientId) {
+        throw new BadRequestException(
+          'A client must be specified when paidAmount is less than the total (debt sale)',
+        );
+      }
+
+      // ── 3. Create Sale ─────────────────────────────────────────────
+      const sale = await tx.sale.create({
+        data: {
+          tenantId,
+          userId,
+          branchId: dto.branchId ?? null,
+          clientId: dto.clientId ?? null,
+          status: status as any,
+          paymentMethod: dto.paymentMethod as any,
+          currency,
+          totalAmount,
+          discount,
+          paidAmount,
+          debtAmount,
+          note: dto.note ?? null,
+          items: {
+            create: itemsData,
+          },
+        },
+        include: SALE_INCLUDE,
+      });
+
+      // ── 4. Decrement inventory + record movements ──────────────────
+      for (const item of dto.items) {
+        const inventory = productMap.get(item.productId)!.inventory[0];
+        const before = Number(inventory.quantity);
+        const after = before - item.quantity;
+
+        await tx.inventory.update({
+          where: { id: inventory.id },
+          data: { quantity: after },
+        });
+
+        await tx.inventoryMovement.create({
           data: {
+            inventoryId: inventory.id,
             tenantId,
-            saleId: sale.id,
-            amount: paidAmount,
-            paymentMethod: (dto.paymentMethod as any) ?? 'cash',
+            userId,
+            branchId: dto.branchId ?? null,
+            type: 'out',
+            quantity: item.quantity,
+            before,
+            after,
+            note: `Sale #${sale.id}`,
           },
         });
       }
 
-      // Deduct inventory
-      for (const item of items) {
-        await tx.inventory.updateMany({
-          where: { productId: item.productId, tenantId },
-          data: { quantity: { decrement: item.quantity } },
+      // ── 5. Sync ClientTransaction if client + debt exists ──────────
+      if (dto.clientId && debtAmount > 0) {
+        await tx.clientTransaction.create({
+          data: {
+            tenantId,
+            clientId: dto.clientId,
+            userId,
+            saleId: sale.id,
+            type: 'outcome',
+            amount: debtAmount,
+            currency,
+            paymentMethod: dto.paymentMethod as any,
+            description: `Debt from sale #${sale.id}`,
+          },
         });
+      }
+
+      return sale;
+    }).then(async (sale) => {
+      // Fire low-stock notification after transaction commits
+      const productIds = dto.items.map((i) => i.productId);
+      this.checkAndNotifyLowStock(tenantId, productIds).catch((err) =>
+        this.logger.error('Failed to send low-stock notification', err),
+      );
+
+      // Notify client via Telegram if they have a linked account
+      if (this.telegram && dto.clientId) {
+        const date = this.telegram.fmtDate(sale.createdAt);
+        const total = Number(sale.totalAmount);
+        const paid = Number(sale.paidAmount);
+        const debt = Number(sale.debtAmount);
+        const currency = sale.currency as string;
+        const itemCount = (sale as any).items?.length ?? dto.items.length;
+
+        this.telegram
+          .notifyClientNewSale(dto.clientId, { date, total, paid, debt, currency, itemCount })
+          .catch((err) => this.logger.warn('Telegram notify new sale failed', err));
+
+        if (debt > 0) {
+          // Compute updated balance for the debt notification message
+          this.telegram
+            .getClientBalance(tenantId, dto.clientId)
+            .then(({ balanceUzs, balanceUsd }) =>
+              this.telegram.notifyClientNewDebt(dto.clientId!, {
+                date,
+                amount: debt,
+                currency,
+                description: `Debt from sale on ${date}`,
+                balanceUzs,
+                balanceUsd,
+              }),
+            )
+            .catch((err) => this.logger.warn('Telegram notify new debt failed', err));
+        }
       }
 
       return sale;
     });
   }
 
-  findAll(tenantId: string, branchId?: string) {
-    return this.prisma.sale.findMany({
-      where: {
-        tenantId,
-        ...(branchId && { branchId }),
-      },
-      include: {
-        seller: { select: { id: true, fullName: true } },
-        client: { select: { id: true, fullName: true } },
-        branch: { select: { id: true, name: true } },
-        _count: { select: { items: true, payments: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  // ─── Read ─────────────────────────────────────────────────────────────
+
+  async findAll(
+    tenantId: string,
+    filters: {
+      clientId?: string;
+      branchId?: string;
+      status?: string;
+      from?: string;
+      to?: string;
+      page?: number;
+      limit?: number;
+    } = {},
+  ) {
+    const { skip, take, page: p, limit: l } = paginateParams(filters.page ?? 1, filters.limit ?? 20);
+    const where = {
+      tenantId,
+      ...(filters.clientId && { clientId: filters.clientId }),
+      ...(filters.branchId && { branchId: filters.branchId }),
+      ...(filters.status && { status: filters.status as any }),
+      ...((filters.from || filters.to) && {
+        createdAt: {
+          ...(filters.from && { gte: new Date(filters.from) }),
+          ...(filters.to && { lte: new Date(filters.to) }),
+        },
+      }),
+    };
+    const [data, total] = await Promise.all([
+      this.prisma.sale.findMany({ where, include: SALE_INCLUDE, orderBy: { createdAt: 'desc' }, skip, take }),
+      this.prisma.sale.count({ where }),
+    ]);
+    return paginated(data, total, p, l);
   }
 
-  async findOne(tenantId: string, id: string) {
+  async findOne(id: string, tenantId: string) {
     const sale = await this.prisma.sale.findFirst({
       where: { id, tenantId },
       include: {
-        items: { include: { product: { select: { id: true, name: true, sku: true } } } },
-        payments: true,
-        seller: { select: { id: true, fullName: true } },
-        client: true,
-        branch: { select: { id: true, name: true } },
+        ...SALE_INCLUDE,
+        clientTransactions: true,
       },
     });
     if (!sale) throw new NotFoundException('Sale not found');
     return sale;
   }
 
-  async update(tenantId: string, id: string, dto: UpdateSaleDto) {
-    const existing = await this.prisma.sale.findFirst({
-      where: { id, tenantId },
-      include: { items: true },
-    });
-    if (!existing) throw new NotFoundException('Sale not found');
+  // ─── Cancel ───────────────────────────────────────────────────────────
+
+  async cancel(id: string, tenantId: string, userId: string) {
+    const sale = await this.findOne(id, tenantId);
+
+    if (sale.status === 'cancelled') {
+      throw new BadRequestException('Sale is already cancelled');
+    }
 
     return this.prisma.$transaction(async (tx) => {
-      let totalAmount = Number(existing.totalAmount);
-      let discountAmount = dto.discountAmount ?? Number(existing.discountAmount);
-
-      // If items are being replaced
-      if (dto.items) {
-        // Restore inventory for old items
-        for (const oldItem of existing.items) {
-          await tx.inventory.updateMany({
-            where: { productId: oldItem.productId, tenantId },
-            data: { quantity: { increment: Number(oldItem.quantity) } },
-          });
-        }
-
-        // Validate new products
-        const productIds = dto.items.map((item) => item.productId);
-        const existingProducts = await tx.product.findMany({
-          where: { id: { in: productIds }, tenantId },
-          select: { id: true },
-        });
-        const existingIds = new Set(existingProducts.map((p) => p.id));
-        const missingIds = productIds.filter((pid) => !existingIds.has(pid));
-        if (missingIds.length > 0) {
-          throw new NotFoundException(`Products not found: ${missingIds.join(', ')}`);
-        }
-
-        // Delete old items and create new ones
-        await tx.saleItem.deleteMany({ where: { saleId: id } });
-
-        const newItems = dto.items.map((item) => ({
-          ...item,
-          totalPrice: item.quantity * item.unitPrice,
-        }));
-
-        await tx.saleItem.createMany({
-          data: newItems.map((item) => ({
-            saleId: id,
-            productId: item.productId,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            totalPrice: item.totalPrice,
-          })),
+      // Restore inventory for each item
+      for (const item of sale.items) {
+        const inventory = await tx.inventory.findFirst({
+          where: { productId: item.productId, tenantId },
         });
 
-        // Deduct inventory for new items
-        for (const item of newItems) {
-          await tx.inventory.updateMany({
-            where: { productId: item.productId, tenantId },
-            data: { quantity: { decrement: item.quantity } },
+        if (inventory) {
+          const before = Number(inventory.quantity);
+          const after = before + Number(item.quantity);
+
+          await tx.inventory.update({
+            where: { id: inventory.id },
+            data: { quantity: after },
+          });
+
+          await tx.inventoryMovement.create({
+            data: {
+              inventoryId: inventory.id,
+              tenantId,
+              userId,
+              type: 'in',
+              quantity: Number(item.quantity),
+              before,
+              after,
+              note: `Cancelled sale #${id}`,
+            },
           });
         }
-
-        totalAmount = newItems.reduce((sum, item) => sum + item.totalPrice, 0);
       }
 
-      const finalAmount = totalAmount - discountAmount;
-
-      let paymentStatus = dto.paymentStatus;
-      if (!paymentStatus) {
-        const paidAmount = Number(existing.paidAmount);
-        if (paidAmount >= finalAmount) paymentStatus = 'paid';
-        else if (paidAmount > 0) paymentStatus = 'partial';
-        else paymentStatus = 'pending';
+      // If there was client debt, create an offsetting ClientTransaction (income = debt reversed)
+      if (sale.clientId && Number(sale.debtAmount) > 0) {
+        await tx.clientTransaction.create({
+          data: {
+            tenantId,
+            clientId: sale.clientId,
+            userId,
+            saleId: sale.id,
+            type: 'income',
+            amount: sale.debtAmount,
+            currency: sale.currency,
+            description: `Debt reversal — cancelled sale #${id}`,
+          },
+        });
       }
 
       return tx.sale.update({
         where: { id },
-        data: {
-          ...(dto.clientId !== undefined && { clientId: dto.clientId }),
-          ...(dto.notes !== undefined && { notes: dto.notes }),
-          ...(dto.items && { totalAmount, finalAmount }),
-          discountAmount,
-          paymentStatus,
-        },
-        include: {
-          items: { include: { product: { select: { id: true, name: true } } } },
-          client: true,
-          seller: { select: { id: true, fullName: true } },
-        },
+        data: { status: 'cancelled' },
+        include: SALE_INCLUDE,
       });
     });
   }
 
-  async remove(tenantId: string, id: string) {
-    const sale = await this.prisma.sale.findFirst({
-      where: { id, tenantId },
+  // ─── Daily summary ────────────────────────────────────────────────────
+
+  async summary(tenantId: string, branchId?: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const sales = await this.prisma.sale.findMany({
+      where: {
+        tenantId,
+        status: { not: 'cancelled' },
+        createdAt: { gte: today },
+        ...(branchId && { branchId }),
+      },
       include: { items: true },
     });
-    if (!sale) throw new NotFoundException('Sale not found');
 
-    return this.prisma.$transaction(async (tx) => {
-      // Restore inventory
+    let totalRevenue = 0;
+    let totalCost = 0;
+    let totalDiscount = 0;
+    let totalDebt = 0;
+
+    for (const sale of sales) {
+      totalRevenue += Number(sale.totalAmount);
+      totalDiscount += Number(sale.discount);
+      totalDebt += Number(sale.debtAmount);
+
       for (const item of sale.items) {
-        await tx.inventory.updateMany({
-          where: { productId: item.productId, tenantId },
-          data: { quantity: { increment: Number(item.quantity) } },
-        });
+        totalCost += Number(item.costPrice) * Number(item.quantity);
       }
+    }
 
-      await tx.sale.delete({ where: { id } });
-      return { message: 'Sale deleted successfully' };
+    return {
+      date: today.toISOString().slice(0, 10),
+      salesCount: sales.length,
+      totalRevenue: +totalRevenue.toFixed(2),
+      totalCost: +totalCost.toFixed(2),
+      grossProfit: +(totalRevenue - totalCost).toFixed(2),
+      totalDiscount: +totalDiscount.toFixed(2),
+      totalDebt: +totalDebt.toFixed(2),
+    };
+  }
+
+  // ─── Low-stock helper ─────────────────────────────────────────────────
+
+  private async checkAndNotifyLowStock(
+    tenantId: string,
+    productIds: string[],
+  ): Promise<void> {
+    if (productIds.length === 0) return;
+
+    const { getLowStockMessage } = await import(
+      '../notifications/notification-messages'
+    );
+
+    const lowStockItems = await this.prisma.inventory.findMany({
+      where: {
+        tenantId,
+        productId: { in: productIds },
+        minQuantity: { not: null },
+      },
+      include: { product: { select: { id: true, name: true } } },
+    });
+
+    const alertItems = lowStockItems.filter(
+      (item) =>
+        item.minQuantity !== null &&
+        Number(item.quantity) <= Number(item.minQuantity),
+    );
+
+    if (alertItems.length === 0) return;
+
+    const owner = await this.prisma.user.findFirst({
+      where: { tenantId, role: 'owner', isActive: true },
+      select: { id: true, expoPushToken: true, language: true },
+    });
+
+    if (!owner?.expoPushToken) return;
+
+    const msg = getLowStockMessage(owner.language);
+    const itemsList = alertItems
+      .map((item) => msg.itemFormat(item.product.name, Number(item.quantity)))
+      .join('\n');
+
+    await this.notifications.sendToUser(owner.id, {
+      title: msg.title,
+      body:
+        alertItems.length === 1
+          ? msg.single(alertItems[0].product.name, Number(alertItems[0].quantity))
+          : msg.multi(alertItems.length, itemsList),
+      data: {
+        type: 'low_stock',
+        productIds: alertItems.map((i) => i.product.id),
+      },
     });
   }
 }

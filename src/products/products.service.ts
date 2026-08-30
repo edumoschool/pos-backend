@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
 import { CreateProductDto, UpdateProductDto } from './dto';
+import { paginateParams, paginated } from '../common/helpers/paginate';
 
 @Injectable()
 export class ProductsService {
@@ -31,7 +32,7 @@ export class ProductsService {
     return this.prisma.$transaction(async (tx) => {
       const product = await tx.product.create({
         data: { ...productData, tenantId } as any,
-        include: { category: true, unit: true },
+        include: { category: true, brandCategory: true, unit: true },
       });
 
       await tx.inventory.create({
@@ -45,38 +46,48 @@ export class ProductsService {
 
       const created = await tx.product.findUnique({
         where: { id: product.id },
-        include: { category: true, unit: true, inventory: true },
+        include: { category: true, brandCategory: true, unit: true, inventory: true },
       });
       const inventory = created.inventory && created.inventory.length > 0 ? created.inventory[0] : null;
       return this.resolveImageUrl({
         ...created,
-        inventoryStatus: inventory && inventory.quantity <= (inventory.minQuantity || 0) ? 'low-stock' : 'in-stock'
+        inventoryStatus: inventory && inventory.quantity <= (inventory.minQuantity || 0) ? 'low-stock' : 'in-stock',
       });
     });
   }
 
-  findAll(tenantId: string, search?: string) {
-    return this.prisma.product.findMany({
-      where: {
-        tenantId,
-        isActive: true,
-        ...(search && {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' as const } },
-            { sku: { contains: search, mode: 'insensitive' as const } },
-            { barcode: { contains: search, mode: 'insensitive' as const } },
-          ],
-        }),
-      },
-      include: { category: true, unit: true, inventory: true },
-      orderBy: { createdAt: 'desc' },
-    }).then(products => Promise.all(products.map(async product => {
+  async findAll(tenantId: string, search?: string, categoryId?: string, brandCategoryId?: string, page = 1, limit = 20) {
+    const { skip, take, page: p, limit: l } = paginateParams(page, limit);
+    const where = {
+      tenantId,
+      isActive: true,
+      ...(categoryId && { categoryId }),
+      ...(brandCategoryId && { brandCategoryId }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' as const } },
+          { description: { contains: search, mode: 'insensitive' as const } },
+        ],
+      }),
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        include: { category: true, brandCategory: true, unit: true, inventory: true },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+    const data = await Promise.all(rows.map(async product => {
       const inventory = product.inventory && product.inventory.length > 0 ? product.inventory[0] : null;
       return this.resolveImageUrl({
         ...product,
-        inventoryStatus: inventory && inventory.quantity <= (inventory.minQuantity || 0) ? 'low-stock' : 'in-stock'
+        inventoryStatus: inventory && inventory.quantity <= (inventory.minQuantity || 0) ? 'low-stock' : 'in-stock',
       });
-    })));
+    }));
+    return paginated(data, total, p, l);
   }
 
   async findOne(id: string, tenantId: string) {
@@ -84,6 +95,7 @@ export class ProductsService {
       where: { id, tenantId },
       include: {
         category: true,
+        brandCategory: true,
         unit: true,
         inventory: true,
       },
@@ -92,18 +104,41 @@ export class ProductsService {
     const inventory = product.inventory && product.inventory.length > 0 ? product.inventory[0] : null;
     return this.resolveImageUrl({
       ...product,
-      inventoryStatus: inventory && inventory.quantity <= (inventory.minQuantity || 0) ? 'low-stock' : 'in-stock'
+      inventoryStatus: inventory && inventory.quantity <= (inventory.minQuantity || 0) ? 'low-stock' : 'in-stock',
     });
   }
 
   async update(id: string, tenantId: string, dto: UpdateProductDto) {
     await this.findOne(id, tenantId);
-    const updated = await this.prisma.product.update({
-      where: { id },
-      data: dto as any,
-      include: { category: true, unit: true },
+    const { quantity, minQuantity, ...productData } = dto as any;
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id },
+        data: productData,
+      });
+
+      // Sync inventory fields if provided
+      if (quantity !== undefined || minQuantity !== undefined) {
+        await tx.inventory.updateMany({
+          where: { productId: id, tenantId },
+          data: {
+            ...(quantity !== undefined && { quantity }),
+            ...(minQuantity !== undefined && { minQuantity }),
+          },
+        });
+      }
+
+      const updated = await tx.product.findUnique({
+        where: { id },
+        include: { category: true, brandCategory: true, unit: true, inventory: true },
+      });
+      const inventory = updated.inventory && updated.inventory.length > 0 ? updated.inventory[0] : null;
+      return this.resolveImageUrl({
+        ...updated,
+        inventoryStatus: inventory && inventory.quantity <= (inventory.minQuantity || 0) ? 'low-stock' : 'in-stock',
+      });
     });
-    return this.resolveImageUrl(updated);
   }
 
   async remove(id: string, tenantId: string) {
@@ -130,7 +165,7 @@ export class ProductsService {
     const updated = await this.prisma.product.update({
       where: { id },
       data: { imageUrl: objectName },
-      include: { category: true, unit: true },
+      include: { category: true, brandCategory: true, unit: true },
     });
     return this.resolveImageUrl(updated);
   }
@@ -145,7 +180,7 @@ export class ProductsService {
     return this.prisma.product.update({
       where: { id },
       data: { imageUrl: null },
-      include: { category: true, unit: true },
+      include: { category: true, brandCategory: true, unit: true },
     });
   }
 

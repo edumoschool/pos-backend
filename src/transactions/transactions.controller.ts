@@ -27,12 +27,16 @@ export class TransactionsController {
   @ApiOperation({ summary: 'List transactions' })
   @ApiQuery({ name: 'branchId', required: false })
   @ApiQuery({ name: 'type', required: false, enum: ['income', 'expense'] })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   findAll(
     @CurrentUser('tenantId') tenantId: string,
     @Query('branchId') branchId?: string,
     @Query('type') type?: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
   ) {
-    return this.service.findAll(tenantId, branchId, type as any);
+    return this.service.findAll(tenantId, branchId, type as any, +page, +limit);
   }
 
   @Get(':id')

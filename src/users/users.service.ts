@@ -1,11 +1,16 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SseService } from '../auth/sse.service';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import * as bcrypt from 'bcrypt';
+import { paginateParams, paginated } from '../common/helpers/paginate';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private sseService: SseService,
+  ) {}
 
   async create(tenantId: string, dto: CreateUserDto) {
     const existing = await this.prisma.user.findFirst({
@@ -33,16 +38,24 @@ export class UsersService {
     });
   }
 
-  findAll(tenantId: string) {
-    return this.prisma.user.findMany({
-      where: { tenantId },
-      select: {
-        id: true, phone: true, fullName: true, role: true,
-        branchId: true, language: true, isActive: true, createdAt: true,
-        branch: { select: { id: true, name: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  async findAll(tenantId: string, role?: string, page = 1, limit = 20) {
+    const { skip, take, page: p, limit: l } = paginateParams(page, limit);
+    const where = { tenantId, ...(role && { role: role as any }) };
+    const [data, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        select: {
+          id: true, phone: true, fullName: true, role: true,
+          branchId: true, language: true, isActive: true, createdAt: true,
+          branch: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+    return paginated(data, total, p, l);
   }
 
   async findOne(id: string, tenantId: string) {
@@ -81,9 +94,21 @@ export class UsersService {
 
   async remove(id: string, tenantId: string) {
     await this.findOne(id, tenantId);
-    return this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id },
       data: { isActive: false },
+    });
+    this.sseService.emitUserDeactivated(id);
+    return user;
+  }
+
+  async changeLanguage(userId: string, language: 'en' | 'uz' | 'ru') {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { language: language as any },
+      select: {
+        id: true, fullName: true, language: true,
+      },
     });
   }
 }

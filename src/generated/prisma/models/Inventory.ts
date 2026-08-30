@@ -29,19 +29,28 @@ export type AggregateInventory = {
 export type InventoryAvgAggregateOutputType = {
   quantity: runtime.Decimal | null
   minQuantity: runtime.Decimal | null
+  maxQuantity: runtime.Decimal | null
+  costPrice: runtime.Decimal | null
 }
 
 export type InventorySumAggregateOutputType = {
   quantity: runtime.Decimal | null
   minQuantity: runtime.Decimal | null
+  maxQuantity: runtime.Decimal | null
+  costPrice: runtime.Decimal | null
 }
 
 export type InventoryMinAggregateOutputType = {
   id: string | null
   productId: string | null
   tenantId: string | null
+  supplierId: string | null
   quantity: runtime.Decimal | null
   minQuantity: runtime.Decimal | null
+  maxQuantity: runtime.Decimal | null
+  costPrice: runtime.Decimal | null
+  costCurrency: $Enums.Currency | null
+  location: string | null
   updatedAt: Date | null
 }
 
@@ -49,8 +58,13 @@ export type InventoryMaxAggregateOutputType = {
   id: string | null
   productId: string | null
   tenantId: string | null
+  supplierId: string | null
   quantity: runtime.Decimal | null
   minQuantity: runtime.Decimal | null
+  maxQuantity: runtime.Decimal | null
+  costPrice: runtime.Decimal | null
+  costCurrency: $Enums.Currency | null
+  location: string | null
   updatedAt: Date | null
 }
 
@@ -58,8 +72,13 @@ export type InventoryCountAggregateOutputType = {
   id: number
   productId: number
   tenantId: number
+  supplierId: number
   quantity: number
   minQuantity: number
+  maxQuantity: number
+  costPrice: number
+  costCurrency: number
+  location: number
   updatedAt: number
   _all: number
 }
@@ -68,19 +87,28 @@ export type InventoryCountAggregateOutputType = {
 export type InventoryAvgAggregateInputType = {
   quantity?: true
   minQuantity?: true
+  maxQuantity?: true
+  costPrice?: true
 }
 
 export type InventorySumAggregateInputType = {
   quantity?: true
   minQuantity?: true
+  maxQuantity?: true
+  costPrice?: true
 }
 
 export type InventoryMinAggregateInputType = {
   id?: true
   productId?: true
   tenantId?: true
+  supplierId?: true
   quantity?: true
   minQuantity?: true
+  maxQuantity?: true
+  costPrice?: true
+  costCurrency?: true
+  location?: true
   updatedAt?: true
 }
 
@@ -88,8 +116,13 @@ export type InventoryMaxAggregateInputType = {
   id?: true
   productId?: true
   tenantId?: true
+  supplierId?: true
   quantity?: true
   minQuantity?: true
+  maxQuantity?: true
+  costPrice?: true
+  costCurrency?: true
+  location?: true
   updatedAt?: true
 }
 
@@ -97,8 +130,13 @@ export type InventoryCountAggregateInputType = {
   id?: true
   productId?: true
   tenantId?: true
+  supplierId?: true
   quantity?: true
   minQuantity?: true
+  maxQuantity?: true
+  costPrice?: true
+  costCurrency?: true
+  location?: true
   updatedAt?: true
   _all?: true
 }
@@ -193,8 +231,13 @@ export type InventoryGroupByOutputType = {
   id: string
   productId: string
   tenantId: string
+  supplierId: string | null
   quantity: runtime.Decimal
   minQuantity: runtime.Decimal | null
+  maxQuantity: runtime.Decimal | null
+  costPrice: runtime.Decimal
+  costCurrency: $Enums.Currency
+  location: string | null
   updatedAt: Date
   _count: InventoryCountAggregateOutputType | null
   _avg: InventoryAvgAggregateOutputType | null
@@ -225,22 +268,36 @@ export type InventoryWhereInput = {
   id?: Prisma.UuidFilter<"Inventory"> | string
   productId?: Prisma.UuidFilter<"Inventory"> | string
   tenantId?: Prisma.UuidFilter<"Inventory"> | string
+  supplierId?: Prisma.UuidNullableFilter<"Inventory"> | string | null
   quantity?: Prisma.DecimalFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.DecimalNullableFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.DecimalNullableFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFilter<"Inventory"> | $Enums.Currency
+  location?: Prisma.StringNullableFilter<"Inventory"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"Inventory"> | Date | string
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
+  supplier?: Prisma.XOR<Prisma.SupplierNullableScalarRelationFilter, Prisma.SupplierWhereInput> | null
+  movements?: Prisma.InventoryMovementListRelationFilter
 }
 
 export type InventoryOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   productId?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  supplierId?: Prisma.SortOrderInput | Prisma.SortOrder
   quantity?: Prisma.SortOrder
   minQuantity?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxQuantity?: Prisma.SortOrderInput | Prisma.SortOrder
+  costPrice?: Prisma.SortOrder
+  costCurrency?: Prisma.SortOrder
+  location?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   product?: Prisma.ProductOrderByWithRelationInput
   tenant?: Prisma.TenantOrderByWithRelationInput
+  supplier?: Prisma.SupplierOrderByWithRelationInput
+  movements?: Prisma.InventoryMovementOrderByRelationAggregateInput
 }
 
 export type InventoryWhereUniqueInput = Prisma.AtLeast<{
@@ -251,19 +308,31 @@ export type InventoryWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.InventoryWhereInput | Prisma.InventoryWhereInput[]
   productId?: Prisma.UuidFilter<"Inventory"> | string
   tenantId?: Prisma.UuidFilter<"Inventory"> | string
+  supplierId?: Prisma.UuidNullableFilter<"Inventory"> | string | null
   quantity?: Prisma.DecimalFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.DecimalNullableFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.DecimalNullableFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFilter<"Inventory"> | $Enums.Currency
+  location?: Prisma.StringNullableFilter<"Inventory"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"Inventory"> | Date | string
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
+  supplier?: Prisma.XOR<Prisma.SupplierNullableScalarRelationFilter, Prisma.SupplierWhereInput> | null
+  movements?: Prisma.InventoryMovementListRelationFilter
 }, "id" | "productId_tenantId">
 
 export type InventoryOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   productId?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  supplierId?: Prisma.SortOrderInput | Prisma.SortOrder
   quantity?: Prisma.SortOrder
   minQuantity?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxQuantity?: Prisma.SortOrderInput | Prisma.SortOrder
+  costPrice?: Prisma.SortOrder
+  costCurrency?: Prisma.SortOrder
+  location?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.InventoryCountOrderByAggregateInput
   _avg?: Prisma.InventoryAvgOrderByAggregateInput
@@ -279,8 +348,13 @@ export type InventoryScalarWhereWithAggregatesInput = {
   id?: Prisma.UuidWithAggregatesFilter<"Inventory"> | string
   productId?: Prisma.UuidWithAggregatesFilter<"Inventory"> | string
   tenantId?: Prisma.UuidWithAggregatesFilter<"Inventory"> | string
+  supplierId?: Prisma.UuidNullableWithAggregatesFilter<"Inventory"> | string | null
   quantity?: Prisma.DecimalWithAggregatesFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.DecimalNullableWithAggregatesFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.DecimalNullableWithAggregatesFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalWithAggregatesFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyWithAggregatesFilter<"Inventory"> | $Enums.Currency
+  location?: Prisma.StringNullableWithAggregatesFilter<"Inventory"> | string | null
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Inventory"> | Date | string
 }
 
@@ -288,44 +362,73 @@ export type InventoryCreateInput = {
   id?: string
   quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
   updatedAt?: Date | string
   product: Prisma.ProductCreateNestedOneWithoutInventoryInput
   tenant: Prisma.TenantCreateNestedOneWithoutInventoryInput
+  supplier?: Prisma.SupplierCreateNestedOneWithoutInventoriesInput
+  movements?: Prisma.InventoryMovementCreateNestedManyWithoutInventoryInput
 }
 
 export type InventoryUncheckedCreateInput = {
   id?: string
   productId: string
   tenantId: string
+  supplierId?: string | null
   quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
   updatedAt?: Date | string
+  movements?: Prisma.InventoryMovementUncheckedCreateNestedManyWithoutInventoryInput
 }
 
 export type InventoryUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   product?: Prisma.ProductUpdateOneRequiredWithoutInventoryNestedInput
   tenant?: Prisma.TenantUpdateOneRequiredWithoutInventoryNestedInput
+  supplier?: Prisma.SupplierUpdateOneWithoutInventoriesNestedInput
+  movements?: Prisma.InventoryMovementUpdateManyWithoutInventoryNestedInput
 }
 
 export type InventoryUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  movements?: Prisma.InventoryMovementUncheckedUpdateManyWithoutInventoryNestedInput
 }
 
 export type InventoryCreateManyInput = {
   id?: string
   productId: string
   tenantId: string
+  supplierId?: string | null
   quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
   updatedAt?: Date | string
 }
 
@@ -333,6 +436,10 @@ export type InventoryUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -340,8 +447,13 @@ export type InventoryUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -364,22 +476,34 @@ export type InventoryCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   productId?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  supplierId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   minQuantity?: Prisma.SortOrder
+  maxQuantity?: Prisma.SortOrder
+  costPrice?: Prisma.SortOrder
+  costCurrency?: Prisma.SortOrder
+  location?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type InventoryAvgOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
   minQuantity?: Prisma.SortOrder
+  maxQuantity?: Prisma.SortOrder
+  costPrice?: Prisma.SortOrder
 }
 
 export type InventoryMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   productId?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  supplierId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   minQuantity?: Prisma.SortOrder
+  maxQuantity?: Prisma.SortOrder
+  costPrice?: Prisma.SortOrder
+  costCurrency?: Prisma.SortOrder
+  location?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -387,14 +511,26 @@ export type InventoryMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   productId?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  supplierId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   minQuantity?: Prisma.SortOrder
+  maxQuantity?: Prisma.SortOrder
+  costPrice?: Prisma.SortOrder
+  costCurrency?: Prisma.SortOrder
+  location?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type InventorySumOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
   minQuantity?: Prisma.SortOrder
+  maxQuantity?: Prisma.SortOrder
+  costPrice?: Prisma.SortOrder
+}
+
+export type InventoryScalarRelationFilter = {
+  is?: Prisma.InventoryWhereInput
+  isNot?: Prisma.InventoryWhereInput
 }
 
 export type InventoryCreateNestedManyWithoutTenantInput = {
@@ -489,20 +625,88 @@ export type NullableDecimalFieldUpdateOperationsInput = {
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
+export type InventoryCreateNestedOneWithoutMovementsInput = {
+  create?: Prisma.XOR<Prisma.InventoryCreateWithoutMovementsInput, Prisma.InventoryUncheckedCreateWithoutMovementsInput>
+  connectOrCreate?: Prisma.InventoryCreateOrConnectWithoutMovementsInput
+  connect?: Prisma.InventoryWhereUniqueInput
+}
+
+export type InventoryUpdateOneRequiredWithoutMovementsNestedInput = {
+  create?: Prisma.XOR<Prisma.InventoryCreateWithoutMovementsInput, Prisma.InventoryUncheckedCreateWithoutMovementsInput>
+  connectOrCreate?: Prisma.InventoryCreateOrConnectWithoutMovementsInput
+  upsert?: Prisma.InventoryUpsertWithoutMovementsInput
+  connect?: Prisma.InventoryWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InventoryUpdateToOneWithWhereWithoutMovementsInput, Prisma.InventoryUpdateWithoutMovementsInput>, Prisma.InventoryUncheckedUpdateWithoutMovementsInput>
+}
+
+export type InventoryCreateNestedManyWithoutSupplierInput = {
+  create?: Prisma.XOR<Prisma.InventoryCreateWithoutSupplierInput, Prisma.InventoryUncheckedCreateWithoutSupplierInput> | Prisma.InventoryCreateWithoutSupplierInput[] | Prisma.InventoryUncheckedCreateWithoutSupplierInput[]
+  connectOrCreate?: Prisma.InventoryCreateOrConnectWithoutSupplierInput | Prisma.InventoryCreateOrConnectWithoutSupplierInput[]
+  createMany?: Prisma.InventoryCreateManySupplierInputEnvelope
+  connect?: Prisma.InventoryWhereUniqueInput | Prisma.InventoryWhereUniqueInput[]
+}
+
+export type InventoryUncheckedCreateNestedManyWithoutSupplierInput = {
+  create?: Prisma.XOR<Prisma.InventoryCreateWithoutSupplierInput, Prisma.InventoryUncheckedCreateWithoutSupplierInput> | Prisma.InventoryCreateWithoutSupplierInput[] | Prisma.InventoryUncheckedCreateWithoutSupplierInput[]
+  connectOrCreate?: Prisma.InventoryCreateOrConnectWithoutSupplierInput | Prisma.InventoryCreateOrConnectWithoutSupplierInput[]
+  createMany?: Prisma.InventoryCreateManySupplierInputEnvelope
+  connect?: Prisma.InventoryWhereUniqueInput | Prisma.InventoryWhereUniqueInput[]
+}
+
+export type InventoryUpdateManyWithoutSupplierNestedInput = {
+  create?: Prisma.XOR<Prisma.InventoryCreateWithoutSupplierInput, Prisma.InventoryUncheckedCreateWithoutSupplierInput> | Prisma.InventoryCreateWithoutSupplierInput[] | Prisma.InventoryUncheckedCreateWithoutSupplierInput[]
+  connectOrCreate?: Prisma.InventoryCreateOrConnectWithoutSupplierInput | Prisma.InventoryCreateOrConnectWithoutSupplierInput[]
+  upsert?: Prisma.InventoryUpsertWithWhereUniqueWithoutSupplierInput | Prisma.InventoryUpsertWithWhereUniqueWithoutSupplierInput[]
+  createMany?: Prisma.InventoryCreateManySupplierInputEnvelope
+  set?: Prisma.InventoryWhereUniqueInput | Prisma.InventoryWhereUniqueInput[]
+  disconnect?: Prisma.InventoryWhereUniqueInput | Prisma.InventoryWhereUniqueInput[]
+  delete?: Prisma.InventoryWhereUniqueInput | Prisma.InventoryWhereUniqueInput[]
+  connect?: Prisma.InventoryWhereUniqueInput | Prisma.InventoryWhereUniqueInput[]
+  update?: Prisma.InventoryUpdateWithWhereUniqueWithoutSupplierInput | Prisma.InventoryUpdateWithWhereUniqueWithoutSupplierInput[]
+  updateMany?: Prisma.InventoryUpdateManyWithWhereWithoutSupplierInput | Prisma.InventoryUpdateManyWithWhereWithoutSupplierInput[]
+  deleteMany?: Prisma.InventoryScalarWhereInput | Prisma.InventoryScalarWhereInput[]
+}
+
+export type InventoryUncheckedUpdateManyWithoutSupplierNestedInput = {
+  create?: Prisma.XOR<Prisma.InventoryCreateWithoutSupplierInput, Prisma.InventoryUncheckedCreateWithoutSupplierInput> | Prisma.InventoryCreateWithoutSupplierInput[] | Prisma.InventoryUncheckedCreateWithoutSupplierInput[]
+  connectOrCreate?: Prisma.InventoryCreateOrConnectWithoutSupplierInput | Prisma.InventoryCreateOrConnectWithoutSupplierInput[]
+  upsert?: Prisma.InventoryUpsertWithWhereUniqueWithoutSupplierInput | Prisma.InventoryUpsertWithWhereUniqueWithoutSupplierInput[]
+  createMany?: Prisma.InventoryCreateManySupplierInputEnvelope
+  set?: Prisma.InventoryWhereUniqueInput | Prisma.InventoryWhereUniqueInput[]
+  disconnect?: Prisma.InventoryWhereUniqueInput | Prisma.InventoryWhereUniqueInput[]
+  delete?: Prisma.InventoryWhereUniqueInput | Prisma.InventoryWhereUniqueInput[]
+  connect?: Prisma.InventoryWhereUniqueInput | Prisma.InventoryWhereUniqueInput[]
+  update?: Prisma.InventoryUpdateWithWhereUniqueWithoutSupplierInput | Prisma.InventoryUpdateWithWhereUniqueWithoutSupplierInput[]
+  updateMany?: Prisma.InventoryUpdateManyWithWhereWithoutSupplierInput | Prisma.InventoryUpdateManyWithWhereWithoutSupplierInput[]
+  deleteMany?: Prisma.InventoryScalarWhereInput | Prisma.InventoryScalarWhereInput[]
+}
+
 export type InventoryCreateWithoutTenantInput = {
   id?: string
   quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
   updatedAt?: Date | string
   product: Prisma.ProductCreateNestedOneWithoutInventoryInput
+  supplier?: Prisma.SupplierCreateNestedOneWithoutInventoriesInput
+  movements?: Prisma.InventoryMovementCreateNestedManyWithoutInventoryInput
 }
 
 export type InventoryUncheckedCreateWithoutTenantInput = {
   id?: string
   productId: string
+  supplierId?: string | null
   quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
   updatedAt?: Date | string
+  movements?: Prisma.InventoryMovementUncheckedCreateNestedManyWithoutInventoryInput
 }
 
 export type InventoryCreateOrConnectWithoutTenantInput = {
@@ -538,8 +742,13 @@ export type InventoryScalarWhereInput = {
   id?: Prisma.UuidFilter<"Inventory"> | string
   productId?: Prisma.UuidFilter<"Inventory"> | string
   tenantId?: Prisma.UuidFilter<"Inventory"> | string
+  supplierId?: Prisma.UuidNullableFilter<"Inventory"> | string | null
   quantity?: Prisma.DecimalFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.DecimalNullableFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.DecimalNullableFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFilter<"Inventory"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFilter<"Inventory"> | $Enums.Currency
+  location?: Prisma.StringNullableFilter<"Inventory"> | string | null
   updatedAt?: Prisma.DateTimeFilter<"Inventory"> | Date | string
 }
 
@@ -547,16 +756,28 @@ export type InventoryCreateWithoutProductInput = {
   id?: string
   quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
   updatedAt?: Date | string
   tenant: Prisma.TenantCreateNestedOneWithoutInventoryInput
+  supplier?: Prisma.SupplierCreateNestedOneWithoutInventoriesInput
+  movements?: Prisma.InventoryMovementCreateNestedManyWithoutInventoryInput
 }
 
 export type InventoryUncheckedCreateWithoutProductInput = {
   id?: string
   tenantId: string
+  supplierId?: string | null
   quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
   updatedAt?: Date | string
+  movements?: Prisma.InventoryMovementUncheckedCreateNestedManyWithoutInventoryInput
 }
 
 export type InventoryCreateOrConnectWithoutProductInput = {
@@ -585,11 +806,142 @@ export type InventoryUpdateManyWithWhereWithoutProductInput = {
   data: Prisma.XOR<Prisma.InventoryUpdateManyMutationInput, Prisma.InventoryUncheckedUpdateManyWithoutProductInput>
 }
 
+export type InventoryCreateWithoutMovementsInput = {
+  id?: string
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
+  updatedAt?: Date | string
+  product: Prisma.ProductCreateNestedOneWithoutInventoryInput
+  tenant: Prisma.TenantCreateNestedOneWithoutInventoryInput
+  supplier?: Prisma.SupplierCreateNestedOneWithoutInventoriesInput
+}
+
+export type InventoryUncheckedCreateWithoutMovementsInput = {
+  id?: string
+  productId: string
+  tenantId: string
+  supplierId?: string | null
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
+  updatedAt?: Date | string
+}
+
+export type InventoryCreateOrConnectWithoutMovementsInput = {
+  where: Prisma.InventoryWhereUniqueInput
+  create: Prisma.XOR<Prisma.InventoryCreateWithoutMovementsInput, Prisma.InventoryUncheckedCreateWithoutMovementsInput>
+}
+
+export type InventoryUpsertWithoutMovementsInput = {
+  update: Prisma.XOR<Prisma.InventoryUpdateWithoutMovementsInput, Prisma.InventoryUncheckedUpdateWithoutMovementsInput>
+  create: Prisma.XOR<Prisma.InventoryCreateWithoutMovementsInput, Prisma.InventoryUncheckedCreateWithoutMovementsInput>
+  where?: Prisma.InventoryWhereInput
+}
+
+export type InventoryUpdateToOneWithWhereWithoutMovementsInput = {
+  where?: Prisma.InventoryWhereInput
+  data: Prisma.XOR<Prisma.InventoryUpdateWithoutMovementsInput, Prisma.InventoryUncheckedUpdateWithoutMovementsInput>
+}
+
+export type InventoryUpdateWithoutMovementsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  product?: Prisma.ProductUpdateOneRequiredWithoutInventoryNestedInput
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutInventoryNestedInput
+  supplier?: Prisma.SupplierUpdateOneWithoutInventoriesNestedInput
+}
+
+export type InventoryUncheckedUpdateWithoutMovementsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  productId?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type InventoryCreateWithoutSupplierInput = {
+  id?: string
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
+  updatedAt?: Date | string
+  product: Prisma.ProductCreateNestedOneWithoutInventoryInput
+  tenant: Prisma.TenantCreateNestedOneWithoutInventoryInput
+  movements?: Prisma.InventoryMovementCreateNestedManyWithoutInventoryInput
+}
+
+export type InventoryUncheckedCreateWithoutSupplierInput = {
+  id?: string
+  productId: string
+  tenantId: string
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
+  updatedAt?: Date | string
+  movements?: Prisma.InventoryMovementUncheckedCreateNestedManyWithoutInventoryInput
+}
+
+export type InventoryCreateOrConnectWithoutSupplierInput = {
+  where: Prisma.InventoryWhereUniqueInput
+  create: Prisma.XOR<Prisma.InventoryCreateWithoutSupplierInput, Prisma.InventoryUncheckedCreateWithoutSupplierInput>
+}
+
+export type InventoryCreateManySupplierInputEnvelope = {
+  data: Prisma.InventoryCreateManySupplierInput | Prisma.InventoryCreateManySupplierInput[]
+  skipDuplicates?: boolean
+}
+
+export type InventoryUpsertWithWhereUniqueWithoutSupplierInput = {
+  where: Prisma.InventoryWhereUniqueInput
+  update: Prisma.XOR<Prisma.InventoryUpdateWithoutSupplierInput, Prisma.InventoryUncheckedUpdateWithoutSupplierInput>
+  create: Prisma.XOR<Prisma.InventoryCreateWithoutSupplierInput, Prisma.InventoryUncheckedCreateWithoutSupplierInput>
+}
+
+export type InventoryUpdateWithWhereUniqueWithoutSupplierInput = {
+  where: Prisma.InventoryWhereUniqueInput
+  data: Prisma.XOR<Prisma.InventoryUpdateWithoutSupplierInput, Prisma.InventoryUncheckedUpdateWithoutSupplierInput>
+}
+
+export type InventoryUpdateManyWithWhereWithoutSupplierInput = {
+  where: Prisma.InventoryScalarWhereInput
+  data: Prisma.XOR<Prisma.InventoryUpdateManyMutationInput, Prisma.InventoryUncheckedUpdateManyWithoutSupplierInput>
+}
+
 export type InventoryCreateManyTenantInput = {
   id?: string
   productId: string
+  supplierId?: string | null
   quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
   updatedAt?: Date | string
 }
 
@@ -597,31 +949,53 @@ export type InventoryUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   product?: Prisma.ProductUpdateOneRequiredWithoutInventoryNestedInput
+  supplier?: Prisma.SupplierUpdateOneWithoutInventoriesNestedInput
+  movements?: Prisma.InventoryMovementUpdateManyWithoutInventoryNestedInput
 }
 
 export type InventoryUncheckedUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  movements?: Prisma.InventoryMovementUncheckedUpdateManyWithoutInventoryNestedInput
 }
 
 export type InventoryUncheckedUpdateManyWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type InventoryCreateManyProductInput = {
   id?: string
   tenantId: string
+  supplierId?: string | null
   quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
   updatedAt?: Date | string
 }
 
@@ -629,82 +1003,212 @@ export type InventoryUpdateWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tenant?: Prisma.TenantUpdateOneRequiredWithoutInventoryNestedInput
+  supplier?: Prisma.SupplierUpdateOneWithoutInventoriesNestedInput
+  movements?: Prisma.InventoryMovementUpdateManyWithoutInventoryNestedInput
 }
 
 export type InventoryUncheckedUpdateWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  movements?: Prisma.InventoryMovementUncheckedUpdateManyWithoutInventoryNestedInput
 }
 
 export type InventoryUncheckedUpdateManyWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  supplierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+export type InventoryCreateManySupplierInput = {
+  id?: string
+  productId: string
+  tenantId: string
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  minQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: $Enums.Currency
+  location?: string | null
+  updatedAt?: Date | string
+}
+
+export type InventoryUpdateWithoutSupplierInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  product?: Prisma.ProductUpdateOneRequiredWithoutInventoryNestedInput
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutInventoryNestedInput
+  movements?: Prisma.InventoryMovementUpdateManyWithoutInventoryNestedInput
+}
+
+export type InventoryUncheckedUpdateWithoutSupplierInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  productId?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  movements?: Prisma.InventoryMovementUncheckedUpdateManyWithoutInventoryNestedInput
+}
+
+export type InventoryUncheckedUpdateManyWithoutSupplierInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  productId?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  minQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  maxQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costCurrency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type InventoryCountOutputType
+ */
+
+export type InventoryCountOutputType = {
+  movements: number
+}
+
+export type InventoryCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  movements?: boolean | InventoryCountOutputTypeCountMovementsArgs
+}
+
+/**
+ * InventoryCountOutputType without action
+ */
+export type InventoryCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the InventoryCountOutputType
+   */
+  select?: Prisma.InventoryCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * InventoryCountOutputType without action
+ */
+export type InventoryCountOutputTypeCountMovementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.InventoryMovementWhereInput
+}
 
 
 export type InventorySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   productId?: boolean
   tenantId?: boolean
+  supplierId?: boolean
   quantity?: boolean
   minQuantity?: boolean
+  maxQuantity?: boolean
+  costPrice?: boolean
+  costCurrency?: boolean
+  location?: boolean
   updatedAt?: boolean
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  supplier?: boolean | Prisma.Inventory$supplierArgs<ExtArgs>
+  movements?: boolean | Prisma.Inventory$movementsArgs<ExtArgs>
+  _count?: boolean | Prisma.InventoryCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["inventory"]>
 
 export type InventorySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   productId?: boolean
   tenantId?: boolean
+  supplierId?: boolean
   quantity?: boolean
   minQuantity?: boolean
+  maxQuantity?: boolean
+  costPrice?: boolean
+  costCurrency?: boolean
+  location?: boolean
   updatedAt?: boolean
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  supplier?: boolean | Prisma.Inventory$supplierArgs<ExtArgs>
 }, ExtArgs["result"]["inventory"]>
 
 export type InventorySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   productId?: boolean
   tenantId?: boolean
+  supplierId?: boolean
   quantity?: boolean
   minQuantity?: boolean
+  maxQuantity?: boolean
+  costPrice?: boolean
+  costCurrency?: boolean
+  location?: boolean
   updatedAt?: boolean
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  supplier?: boolean | Prisma.Inventory$supplierArgs<ExtArgs>
 }, ExtArgs["result"]["inventory"]>
 
 export type InventorySelectScalar = {
   id?: boolean
   productId?: boolean
   tenantId?: boolean
+  supplierId?: boolean
   quantity?: boolean
   minQuantity?: boolean
+  maxQuantity?: boolean
+  costPrice?: boolean
+  costCurrency?: boolean
+  location?: boolean
   updatedAt?: boolean
 }
 
-export type InventoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "productId" | "tenantId" | "quantity" | "minQuantity" | "updatedAt", ExtArgs["result"]["inventory"]>
+export type InventoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "productId" | "tenantId" | "supplierId" | "quantity" | "minQuantity" | "maxQuantity" | "costPrice" | "costCurrency" | "location" | "updatedAt", ExtArgs["result"]["inventory"]>
 export type InventoryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  supplier?: boolean | Prisma.Inventory$supplierArgs<ExtArgs>
+  movements?: boolean | Prisma.Inventory$movementsArgs<ExtArgs>
+  _count?: boolean | Prisma.InventoryCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type InventoryIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  supplier?: boolean | Prisma.Inventory$supplierArgs<ExtArgs>
 }
 export type InventoryIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  supplier?: boolean | Prisma.Inventory$supplierArgs<ExtArgs>
 }
 
 export type $InventoryPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -712,13 +1216,20 @@ export type $InventoryPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   objects: {
     product: Prisma.$ProductPayload<ExtArgs>
     tenant: Prisma.$TenantPayload<ExtArgs>
+    supplier: Prisma.$SupplierPayload<ExtArgs> | null
+    movements: Prisma.$InventoryMovementPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     productId: string
     tenantId: string
+    supplierId: string | null
     quantity: runtime.Decimal
     minQuantity: runtime.Decimal | null
+    maxQuantity: runtime.Decimal | null
+    costPrice: runtime.Decimal
+    costCurrency: $Enums.Currency
+    location: string | null
     updatedAt: Date
   }, ExtArgs["result"]["inventory"]>
   composites: {}
@@ -1116,6 +1627,8 @@ export interface Prisma__InventoryClient<T, Null = never, ExtArgs extends runtim
   readonly [Symbol.toStringTag]: "PrismaPromise"
   product<T extends Prisma.ProductDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductClient<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   tenant<T extends Prisma.TenantDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TenantDefaultArgs<ExtArgs>>): Prisma.Prisma__TenantClient<runtime.Types.Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  supplier<T extends Prisma.Inventory$supplierArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Inventory$supplierArgs<ExtArgs>>): Prisma.Prisma__SupplierClient<runtime.Types.Result.GetResult<Prisma.$SupplierPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  movements<T extends Prisma.Inventory$movementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Inventory$movementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InventoryMovementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1148,8 +1661,13 @@ export interface InventoryFieldRefs {
   readonly id: Prisma.FieldRef<"Inventory", 'String'>
   readonly productId: Prisma.FieldRef<"Inventory", 'String'>
   readonly tenantId: Prisma.FieldRef<"Inventory", 'String'>
+  readonly supplierId: Prisma.FieldRef<"Inventory", 'String'>
   readonly quantity: Prisma.FieldRef<"Inventory", 'Decimal'>
   readonly minQuantity: Prisma.FieldRef<"Inventory", 'Decimal'>
+  readonly maxQuantity: Prisma.FieldRef<"Inventory", 'Decimal'>
+  readonly costPrice: Prisma.FieldRef<"Inventory", 'Decimal'>
+  readonly costCurrency: Prisma.FieldRef<"Inventory", 'Currency'>
+  readonly location: Prisma.FieldRef<"Inventory", 'String'>
   readonly updatedAt: Prisma.FieldRef<"Inventory", 'DateTime'>
 }
     
@@ -1549,6 +2067,49 @@ export type InventoryDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Limit how many Inventories to delete.
    */
   limit?: number
+}
+
+/**
+ * Inventory.supplier
+ */
+export type Inventory$supplierArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Supplier
+   */
+  select?: Prisma.SupplierSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Supplier
+   */
+  omit?: Prisma.SupplierOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SupplierInclude<ExtArgs> | null
+  where?: Prisma.SupplierWhereInput
+}
+
+/**
+ * Inventory.movements
+ */
+export type Inventory$movementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the InventoryMovement
+   */
+  select?: Prisma.InventoryMovementSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the InventoryMovement
+   */
+  omit?: Prisma.InventoryMovementOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.InventoryMovementInclude<ExtArgs> | null
+  where?: Prisma.InventoryMovementWhereInput
+  orderBy?: Prisma.InventoryMovementOrderByWithRelationInput | Prisma.InventoryMovementOrderByWithRelationInput[]
+  cursor?: Prisma.InventoryMovementWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.InventoryMovementScalarFieldEnum | Prisma.InventoryMovementScalarFieldEnum[]
 }
 
 /**

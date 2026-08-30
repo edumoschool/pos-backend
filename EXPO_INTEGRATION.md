@@ -11,6 +11,7 @@
 - [API Reference](#api-reference)
 - [Role-Based Access](#role-based-access)
 - [Error Handling](#error-handling)
+- [Push Notifications](#push-notifications)
 - [Offline Support Strategy](#offline-support-strategy)
 
 ---
@@ -868,6 +869,288 @@ const syncPendingSales = async () => {
 
 ---
 
+## Push Notifications
+
+The backend uses the **Expo Push Notification** service to deliver notifications to your Expo app. Each user can register their Expo push token, and the backend can send notifications to individual users or all users within a tenant.
+
+### Prerequisites
+
+```bash
+npx expo install expo-notifications expo-device expo-constants
+```
+
+For Android, add a notification channel in `app.json`:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#ffffff"
+        }
+      ]
+    ],
+    "android": {
+      "useNextNotificationsApi": true
+    }
+  }
+}
+```
+
+### `api/notifications.ts`
+
+```typescript
+import api from './client';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+
+// Configure notification behavior (show when app is in foreground)
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
+// Get the Expo push token and register it with the backend
+export const registerForPushNotifications = async (): Promise<string | null> => {
+  if (!Device.isDevice) {
+    console.warn('Push notifications only work on physical devices');
+    return null;
+  }
+
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+
+  if (finalStatus !== 'granted') {
+    console.warn('Push notification permission not granted');
+    return null;
+  }
+
+  // Create Android notification channel
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'Default',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF231F7C',
+    });
+  }
+
+  const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+  const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+  const token = tokenData.data;
+
+  // Register the token with the backend
+  await api.post('/notifications/register-token', { token });
+
+  return token;
+};
+
+// Remove the push token (e.g. on logout)
+export const unregisterPushToken = async (): Promise<void> => {
+  await api.delete('/notifications/remove-token');
+};
+
+// Send a notification to a specific user (owner/admin use)
+export const sendToUser = async (
+  userId: string,
+  notification: { title?: string; body?: string; data?: Record<string, unknown> },
+) => {
+  const res = await api.post(`/notifications/send/user/${userId}`, notification);
+  return res.data;
+};
+
+// Send a notification to all active users in the current tenant
+export const sendToTenant = async (notification: {
+  title?: string;
+  body?: string;
+  data?: Record<string, unknown>;
+}) => {
+  const res = await api.post('/notifications/send/tenant', notification);
+  return res.data;
+};
+
+// Check delivery receipts (for debugging)
+export const getReceipts = async (ticketIds: string[]) => {
+  const res = await api.post('/notifications/receipts', { ticketIds });
+  return res.data;
+};
+```
+
+### Notification Hook
+
+Create a reusable hook for handling notifications throughout the app:
+
+```typescript
+// hooks/useNotifications.ts
+import { useEffect, useRef } from 'react';
+import * as Notifications from 'expo-notifications';
+import { registerForPushNotifications } from '../api/notifications';
+
+interface NotificationData {
+  type?: string;          // e.g. 'low_stock', 'new_sale', 'debt_reminder'
+  saleId?: string;
+  productId?: string;
+  [key: string]: unknown;
+}
+
+export const useNotifications = (
+  onNotificationReceived?: (data: NotificationData) => void,
+) => {
+  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription>();
+
+  useEffect(() => {
+    // Register token on mount
+    registerForPushNotifications();
+
+    // Listener for when notification is received while app is foregrounded
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener((notification) => {
+        const data = notification.request.content.data as NotificationData;
+        onNotificationReceived?.(data);
+      });
+
+    // Listener for when user taps on a notification
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        const data = response.notification.request.content.data as NotificationData;
+        // Navigate based on notification type
+        handleNotificationNavigation(data);
+      });
+
+    return () => {
+      if (notificationListener.current) {
+        Notifications.removeNotificationSubscription(notificationListener.current);
+      }
+      if (responseListener.current) {
+        Notifications.removeNotificationSubscription(responseListener.current);
+      }
+    };
+  }, []);
+};
+
+// Navigate to the relevant screen when a notification is tapped
+const handleNotificationNavigation = (data: NotificationData) => {
+  switch (data.type) {
+    case 'low_stock':
+      // Navigate to inventory screen
+      break;
+    case 'new_sale':
+      // Navigate to sale detail
+      break;
+    case 'debt_reminder':
+      // Navigate to debts screen
+      break;
+  }
+};
+```
+
+### Usage in App Root
+
+```typescript
+// App.tsx or your root layout
+import { useNotifications } from './hooks/useNotifications';
+import { unregisterPushToken } from './api/notifications';
+
+function App() {
+  // Register token and listen for notifications
+  useNotifications((data) => {
+    console.log('Notification received in foreground:', data);
+  });
+
+  // On logout, unregister the push token
+  const handleLogout = async () => {
+    await unregisterPushToken();
+    await authApi.logout();
+  };
+
+  // ...
+}
+```
+
+### Sending Notifications (Owner Example)
+
+```typescript
+// Notify all staff about a new announcement
+import { sendToTenant, sendToUser } from '../api/notifications';
+
+// Broadcast to all tenant users
+const notifyAllStaff = async () => {
+  const tickets = await sendToTenant({
+    title: 'New Announcement',
+    body: 'Store will close early today at 6 PM',
+    data: { type: 'announcement' },
+  });
+  // tickets: [{ status: 'ok', id: 'ticket-id' }, ...]
+};
+
+// Notify a specific seller
+const notifySeller = async (sellerId: string) => {
+  const tickets = await sendToUser(sellerId, {
+    title: 'Low Stock Alert',
+    body: 'Product "Rice 5kg" is running low (2 remaining)',
+    data: { type: 'low_stock', productId: 'product-uuid' },
+  });
+};
+```
+
+### SendNotificationDto — Full Payload
+
+All optional fields you can include when sending a notification:
+
+```typescript
+interface SendNotificationPayload {
+  to?: string | string[];   // Auto-set when using /send/user or /send/tenant
+  title?: string;           // Notification title
+  body?: string;            // Notification body text
+  subtitle?: string;        // iOS subtitle
+  data?: Record<string, unknown>; // Custom data payload
+  priority?: 'default' | 'normal' | 'high';
+  ttl?: number;             // Time to live in seconds
+  sound?: string | null;    // Sound file (default: 'default')
+  badge?: number;           // iOS badge count
+  channelId?: string;       // Android notification channel ID
+  categoryId?: string;      // Notification category for actions
+  mutableContent?: boolean; // iOS mutable-content flag
+}
+```
+
+### Notifications API Reference
+
+| Method | Endpoint | Body | Description |
+|--------|----------|------|-------------|
+| `POST` | `/notifications/register-token` | `{ token }` | Register Expo push token for current user |
+| `DELETE` | `/notifications/remove-token` | — | Remove push token for current user |
+| `POST` | `/notifications/send` | `SendNotificationDto` | Send to specific token(s) |
+| `POST` | `/notifications/send/user/:userId` | `SendNotificationDto` | Send to a user by their ID |
+| `POST` | `/notifications/send/tenant` | `SendNotificationDto` | Send to all active users in current tenant |
+| `POST` | `/notifications/receipts` | `{ ticketIds: string[] }` | Check delivery receipts |
+
+### Environment Variable
+
+Add `EXPO_ACCESS_TOKEN` to your backend `.env` for authenticated Expo push API access:
+
+```env
+EXPO_ACCESS_TOKEN=your-expo-access-token
+```
+
+Generate this token at [expo.dev/accounts/[account]/settings/access-tokens](https://expo.dev/accounts/).
+
+---
+
 ## Recommended Expo Libraries
 
 | Purpose | Library |
@@ -883,6 +1166,7 @@ const syncPendingSales = async () => {
 | Date picker (reports) | `react-native-date-picker` or `@react-native-community/datetimepicker` |
 | Toast/alerts | `react-native-toast-message` |
 | Forms | `react-hook-form` + `zod` |
+| Push notifications | `expo-notifications` + `expo-device` + `expo-constants` |
 | Receipt printing | `react-native-esc-pos-printer` or `expo-print` |
 
 ---

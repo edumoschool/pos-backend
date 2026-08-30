@@ -41,7 +41,9 @@ export type TransactionMinAggregateOutputType = {
   userId: string | null
   type: $Enums.TransactionType | null
   amount: runtime.Decimal | null
+  currency: $Enums.Currency | null
   expenseCategoryId: string | null
+  incomeCategoryId: string | null
   description: string | null
   createdAt: Date | null
 }
@@ -53,7 +55,9 @@ export type TransactionMaxAggregateOutputType = {
   userId: string | null
   type: $Enums.TransactionType | null
   amount: runtime.Decimal | null
+  currency: $Enums.Currency | null
   expenseCategoryId: string | null
+  incomeCategoryId: string | null
   description: string | null
   createdAt: Date | null
 }
@@ -65,7 +69,9 @@ export type TransactionCountAggregateOutputType = {
   userId: number
   type: number
   amount: number
+  currency: number
   expenseCategoryId: number
+  incomeCategoryId: number
   description: number
   createdAt: number
   _all: number
@@ -87,7 +93,9 @@ export type TransactionMinAggregateInputType = {
   userId?: true
   type?: true
   amount?: true
+  currency?: true
   expenseCategoryId?: true
+  incomeCategoryId?: true
   description?: true
   createdAt?: true
 }
@@ -99,7 +107,9 @@ export type TransactionMaxAggregateInputType = {
   userId?: true
   type?: true
   amount?: true
+  currency?: true
   expenseCategoryId?: true
+  incomeCategoryId?: true
   description?: true
   createdAt?: true
 }
@@ -111,7 +121,9 @@ export type TransactionCountAggregateInputType = {
   userId?: true
   type?: true
   amount?: true
+  currency?: true
   expenseCategoryId?: true
+  incomeCategoryId?: true
   description?: true
   createdAt?: true
   _all?: true
@@ -210,7 +222,9 @@ export type TransactionGroupByOutputType = {
   userId: string
   type: $Enums.TransactionType
   amount: runtime.Decimal
+  currency: $Enums.Currency
   expenseCategoryId: string | null
+  incomeCategoryId: string | null
   description: string | null
   createdAt: Date
   _count: TransactionCountAggregateOutputType | null
@@ -245,13 +259,16 @@ export type TransactionWhereInput = {
   userId?: Prisma.UuidFilter<"Transaction"> | string
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
   amount?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFilter<"Transaction"> | $Enums.Currency
   expenseCategoryId?: Prisma.UuidNullableFilter<"Transaction"> | string | null
+  incomeCategoryId?: Prisma.UuidNullableFilter<"Transaction"> | string | null
   description?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   expenseCategory?: Prisma.XOR<Prisma.ExpenseCategoryNullableScalarRelationFilter, Prisma.ExpenseCategoryWhereInput> | null
+  incomeCategory?: Prisma.XOR<Prisma.IncomeCategoryNullableScalarRelationFilter, Prisma.IncomeCategoryWhereInput> | null
 }
 
 export type TransactionOrderByWithRelationInput = {
@@ -261,13 +278,16 @@ export type TransactionOrderByWithRelationInput = {
   userId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  currency?: Prisma.SortOrder
   expenseCategoryId?: Prisma.SortOrderInput | Prisma.SortOrder
+  incomeCategoryId?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   tenant?: Prisma.TenantOrderByWithRelationInput
   branch?: Prisma.BranchOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
   expenseCategory?: Prisma.ExpenseCategoryOrderByWithRelationInput
+  incomeCategory?: Prisma.IncomeCategoryOrderByWithRelationInput
 }
 
 export type TransactionWhereUniqueInput = Prisma.AtLeast<{
@@ -280,13 +300,16 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.UuidFilter<"Transaction"> | string
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
   amount?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFilter<"Transaction"> | $Enums.Currency
   expenseCategoryId?: Prisma.UuidNullableFilter<"Transaction"> | string | null
+  incomeCategoryId?: Prisma.UuidNullableFilter<"Transaction"> | string | null
   description?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   expenseCategory?: Prisma.XOR<Prisma.ExpenseCategoryNullableScalarRelationFilter, Prisma.ExpenseCategoryWhereInput> | null
+  incomeCategory?: Prisma.XOR<Prisma.IncomeCategoryNullableScalarRelationFilter, Prisma.IncomeCategoryWhereInput> | null
 }, "id">
 
 export type TransactionOrderByWithAggregationInput = {
@@ -296,7 +319,9 @@ export type TransactionOrderByWithAggregationInput = {
   userId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  currency?: Prisma.SortOrder
   expenseCategoryId?: Prisma.SortOrderInput | Prisma.SortOrder
+  incomeCategoryId?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.TransactionCountOrderByAggregateInput
@@ -316,7 +341,9 @@ export type TransactionScalarWhereWithAggregatesInput = {
   userId?: Prisma.UuidWithAggregatesFilter<"Transaction"> | string
   type?: Prisma.EnumTransactionTypeWithAggregatesFilter<"Transaction"> | $Enums.TransactionType
   amount?: Prisma.DecimalWithAggregatesFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyWithAggregatesFilter<"Transaction"> | $Enums.Currency
   expenseCategoryId?: Prisma.UuidNullableWithAggregatesFilter<"Transaction"> | string | null
+  incomeCategoryId?: Prisma.UuidNullableWithAggregatesFilter<"Transaction"> | string | null
   description?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
 }
@@ -325,12 +352,14 @@ export type TransactionCreateInput = {
   id?: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
   description?: string | null
   createdAt?: Date | string
   tenant: Prisma.TenantCreateNestedOneWithoutTransactionsInput
   branch: Prisma.BranchCreateNestedOneWithoutTransactionsInput
   user: Prisma.UserCreateNestedOneWithoutTransactionsInput
   expenseCategory?: Prisma.ExpenseCategoryCreateNestedOneWithoutTransactionsInput
+  incomeCategory?: Prisma.IncomeCategoryCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateInput = {
@@ -340,7 +369,9 @@ export type TransactionUncheckedCreateInput = {
   userId: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
   expenseCategoryId?: string | null
+  incomeCategoryId?: string | null
   description?: string | null
   createdAt?: Date | string
 }
@@ -349,12 +380,14 @@ export type TransactionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tenant?: Prisma.TenantUpdateOneRequiredWithoutTransactionsNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutTransactionsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTransactionsNestedInput
   expenseCategory?: Prisma.ExpenseCategoryUpdateOneWithoutTransactionsNestedInput
+  incomeCategory?: Prisma.IncomeCategoryUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateInput = {
@@ -364,7 +397,9 @@ export type TransactionUncheckedUpdateInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   expenseCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incomeCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -376,7 +411,9 @@ export type TransactionCreateManyInput = {
   userId: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
   expenseCategoryId?: string | null
+  incomeCategoryId?: string | null
   description?: string | null
   createdAt?: Date | string
 }
@@ -385,6 +422,7 @@ export type TransactionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -396,7 +434,9 @@ export type TransactionUncheckedUpdateManyInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   expenseCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incomeCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -418,7 +458,9 @@ export type TransactionCountOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  currency?: Prisma.SortOrder
   expenseCategoryId?: Prisma.SortOrder
+  incomeCategoryId?: Prisma.SortOrder
   description?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -434,7 +476,9 @@ export type TransactionMaxOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  currency?: Prisma.SortOrder
   expenseCategoryId?: Prisma.SortOrder
+  incomeCategoryId?: Prisma.SortOrder
   description?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -446,7 +490,9 @@ export type TransactionMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  currency?: Prisma.SortOrder
   expenseCategoryId?: Prisma.SortOrder
+  incomeCategoryId?: Prisma.SortOrder
   description?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -623,6 +669,48 @@ export type TransactionUncheckedUpdateManyWithoutExpenseCategoryNestedInput = {
   deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
 }
 
+export type TransactionCreateNestedManyWithoutIncomeCategoryInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutIncomeCategoryInput, Prisma.TransactionUncheckedCreateWithoutIncomeCategoryInput> | Prisma.TransactionCreateWithoutIncomeCategoryInput[] | Prisma.TransactionUncheckedCreateWithoutIncomeCategoryInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutIncomeCategoryInput | Prisma.TransactionCreateOrConnectWithoutIncomeCategoryInput[]
+  createMany?: Prisma.TransactionCreateManyIncomeCategoryInputEnvelope
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+}
+
+export type TransactionUncheckedCreateNestedManyWithoutIncomeCategoryInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutIncomeCategoryInput, Prisma.TransactionUncheckedCreateWithoutIncomeCategoryInput> | Prisma.TransactionCreateWithoutIncomeCategoryInput[] | Prisma.TransactionUncheckedCreateWithoutIncomeCategoryInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutIncomeCategoryInput | Prisma.TransactionCreateOrConnectWithoutIncomeCategoryInput[]
+  createMany?: Prisma.TransactionCreateManyIncomeCategoryInputEnvelope
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+}
+
+export type TransactionUpdateManyWithoutIncomeCategoryNestedInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutIncomeCategoryInput, Prisma.TransactionUncheckedCreateWithoutIncomeCategoryInput> | Prisma.TransactionCreateWithoutIncomeCategoryInput[] | Prisma.TransactionUncheckedCreateWithoutIncomeCategoryInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutIncomeCategoryInput | Prisma.TransactionCreateOrConnectWithoutIncomeCategoryInput[]
+  upsert?: Prisma.TransactionUpsertWithWhereUniqueWithoutIncomeCategoryInput | Prisma.TransactionUpsertWithWhereUniqueWithoutIncomeCategoryInput[]
+  createMany?: Prisma.TransactionCreateManyIncomeCategoryInputEnvelope
+  set?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  disconnect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  delete?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  update?: Prisma.TransactionUpdateWithWhereUniqueWithoutIncomeCategoryInput | Prisma.TransactionUpdateWithWhereUniqueWithoutIncomeCategoryInput[]
+  updateMany?: Prisma.TransactionUpdateManyWithWhereWithoutIncomeCategoryInput | Prisma.TransactionUpdateManyWithWhereWithoutIncomeCategoryInput[]
+  deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
+}
+
+export type TransactionUncheckedUpdateManyWithoutIncomeCategoryNestedInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutIncomeCategoryInput, Prisma.TransactionUncheckedCreateWithoutIncomeCategoryInput> | Prisma.TransactionCreateWithoutIncomeCategoryInput[] | Prisma.TransactionUncheckedCreateWithoutIncomeCategoryInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutIncomeCategoryInput | Prisma.TransactionCreateOrConnectWithoutIncomeCategoryInput[]
+  upsert?: Prisma.TransactionUpsertWithWhereUniqueWithoutIncomeCategoryInput | Prisma.TransactionUpsertWithWhereUniqueWithoutIncomeCategoryInput[]
+  createMany?: Prisma.TransactionCreateManyIncomeCategoryInputEnvelope
+  set?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  disconnect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  delete?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  update?: Prisma.TransactionUpdateWithWhereUniqueWithoutIncomeCategoryInput | Prisma.TransactionUpdateWithWhereUniqueWithoutIncomeCategoryInput[]
+  updateMany?: Prisma.TransactionUpdateManyWithWhereWithoutIncomeCategoryInput | Prisma.TransactionUpdateManyWithWhereWithoutIncomeCategoryInput[]
+  deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
+}
+
 export type EnumTransactionTypeFieldUpdateOperationsInput = {
   set?: $Enums.TransactionType
 }
@@ -631,11 +719,13 @@ export type TransactionCreateWithoutTenantInput = {
   id?: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
   description?: string | null
   createdAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutTransactionsInput
   user: Prisma.UserCreateNestedOneWithoutTransactionsInput
   expenseCategory?: Prisma.ExpenseCategoryCreateNestedOneWithoutTransactionsInput
+  incomeCategory?: Prisma.IncomeCategoryCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutTenantInput = {
@@ -644,7 +734,9 @@ export type TransactionUncheckedCreateWithoutTenantInput = {
   userId: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
   expenseCategoryId?: string | null
+  incomeCategoryId?: string | null
   description?: string | null
   createdAt?: Date | string
 }
@@ -685,7 +777,9 @@ export type TransactionScalarWhereInput = {
   userId?: Prisma.UuidFilter<"Transaction"> | string
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
   amount?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFilter<"Transaction"> | $Enums.Currency
   expenseCategoryId?: Prisma.UuidNullableFilter<"Transaction"> | string | null
+  incomeCategoryId?: Prisma.UuidNullableFilter<"Transaction"> | string | null
   description?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
 }
@@ -694,11 +788,13 @@ export type TransactionCreateWithoutBranchInput = {
   id?: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
   description?: string | null
   createdAt?: Date | string
   tenant: Prisma.TenantCreateNestedOneWithoutTransactionsInput
   user: Prisma.UserCreateNestedOneWithoutTransactionsInput
   expenseCategory?: Prisma.ExpenseCategoryCreateNestedOneWithoutTransactionsInput
+  incomeCategory?: Prisma.IncomeCategoryCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutBranchInput = {
@@ -707,7 +803,9 @@ export type TransactionUncheckedCreateWithoutBranchInput = {
   userId: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
   expenseCategoryId?: string | null
+  incomeCategoryId?: string | null
   description?: string | null
   createdAt?: Date | string
 }
@@ -742,11 +840,13 @@ export type TransactionCreateWithoutUserInput = {
   id?: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
   description?: string | null
   createdAt?: Date | string
   tenant: Prisma.TenantCreateNestedOneWithoutTransactionsInput
   branch: Prisma.BranchCreateNestedOneWithoutTransactionsInput
   expenseCategory?: Prisma.ExpenseCategoryCreateNestedOneWithoutTransactionsInput
+  incomeCategory?: Prisma.IncomeCategoryCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutUserInput = {
@@ -755,7 +855,9 @@ export type TransactionUncheckedCreateWithoutUserInput = {
   branchId: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
   expenseCategoryId?: string | null
+  incomeCategoryId?: string | null
   description?: string | null
   createdAt?: Date | string
 }
@@ -790,11 +892,13 @@ export type TransactionCreateWithoutExpenseCategoryInput = {
   id?: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
   description?: string | null
   createdAt?: Date | string
   tenant: Prisma.TenantCreateNestedOneWithoutTransactionsInput
   branch: Prisma.BranchCreateNestedOneWithoutTransactionsInput
   user: Prisma.UserCreateNestedOneWithoutTransactionsInput
+  incomeCategory?: Prisma.IncomeCategoryCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutExpenseCategoryInput = {
@@ -804,6 +908,8 @@ export type TransactionUncheckedCreateWithoutExpenseCategoryInput = {
   userId: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
+  incomeCategoryId?: string | null
   description?: string | null
   createdAt?: Date | string
 }
@@ -834,13 +940,67 @@ export type TransactionUpdateManyWithWhereWithoutExpenseCategoryInput = {
   data: Prisma.XOR<Prisma.TransactionUpdateManyMutationInput, Prisma.TransactionUncheckedUpdateManyWithoutExpenseCategoryInput>
 }
 
+export type TransactionCreateWithoutIncomeCategoryInput = {
+  id?: string
+  type: $Enums.TransactionType
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
+  description?: string | null
+  createdAt?: Date | string
+  tenant: Prisma.TenantCreateNestedOneWithoutTransactionsInput
+  branch: Prisma.BranchCreateNestedOneWithoutTransactionsInput
+  user: Prisma.UserCreateNestedOneWithoutTransactionsInput
+  expenseCategory?: Prisma.ExpenseCategoryCreateNestedOneWithoutTransactionsInput
+}
+
+export type TransactionUncheckedCreateWithoutIncomeCategoryInput = {
+  id?: string
+  tenantId: string
+  branchId: string
+  userId: string
+  type: $Enums.TransactionType
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
+  expenseCategoryId?: string | null
+  description?: string | null
+  createdAt?: Date | string
+}
+
+export type TransactionCreateOrConnectWithoutIncomeCategoryInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  create: Prisma.XOR<Prisma.TransactionCreateWithoutIncomeCategoryInput, Prisma.TransactionUncheckedCreateWithoutIncomeCategoryInput>
+}
+
+export type TransactionCreateManyIncomeCategoryInputEnvelope = {
+  data: Prisma.TransactionCreateManyIncomeCategoryInput | Prisma.TransactionCreateManyIncomeCategoryInput[]
+  skipDuplicates?: boolean
+}
+
+export type TransactionUpsertWithWhereUniqueWithoutIncomeCategoryInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  update: Prisma.XOR<Prisma.TransactionUpdateWithoutIncomeCategoryInput, Prisma.TransactionUncheckedUpdateWithoutIncomeCategoryInput>
+  create: Prisma.XOR<Prisma.TransactionCreateWithoutIncomeCategoryInput, Prisma.TransactionUncheckedCreateWithoutIncomeCategoryInput>
+}
+
+export type TransactionUpdateWithWhereUniqueWithoutIncomeCategoryInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  data: Prisma.XOR<Prisma.TransactionUpdateWithoutIncomeCategoryInput, Prisma.TransactionUncheckedUpdateWithoutIncomeCategoryInput>
+}
+
+export type TransactionUpdateManyWithWhereWithoutIncomeCategoryInput = {
+  where: Prisma.TransactionScalarWhereInput
+  data: Prisma.XOR<Prisma.TransactionUpdateManyMutationInput, Prisma.TransactionUncheckedUpdateManyWithoutIncomeCategoryInput>
+}
+
 export type TransactionCreateManyTenantInput = {
   id?: string
   branchId: string
   userId: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
   expenseCategoryId?: string | null
+  incomeCategoryId?: string | null
   description?: string | null
   createdAt?: Date | string
 }
@@ -849,11 +1009,13 @@ export type TransactionUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutTransactionsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTransactionsNestedInput
   expenseCategory?: Prisma.ExpenseCategoryUpdateOneWithoutTransactionsNestedInput
+  incomeCategory?: Prisma.IncomeCategoryUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutTenantInput = {
@@ -862,7 +1024,9 @@ export type TransactionUncheckedUpdateWithoutTenantInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   expenseCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incomeCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -873,7 +1037,9 @@ export type TransactionUncheckedUpdateManyWithoutTenantInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   expenseCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incomeCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -884,7 +1050,9 @@ export type TransactionCreateManyBranchInput = {
   userId: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
   expenseCategoryId?: string | null
+  incomeCategoryId?: string | null
   description?: string | null
   createdAt?: Date | string
 }
@@ -893,11 +1061,13 @@ export type TransactionUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tenant?: Prisma.TenantUpdateOneRequiredWithoutTransactionsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTransactionsNestedInput
   expenseCategory?: Prisma.ExpenseCategoryUpdateOneWithoutTransactionsNestedInput
+  incomeCategory?: Prisma.IncomeCategoryUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutBranchInput = {
@@ -906,7 +1076,9 @@ export type TransactionUncheckedUpdateWithoutBranchInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   expenseCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incomeCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -917,7 +1089,9 @@ export type TransactionUncheckedUpdateManyWithoutBranchInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   expenseCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incomeCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -928,7 +1102,9 @@ export type TransactionCreateManyUserInput = {
   branchId: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
   expenseCategoryId?: string | null
+  incomeCategoryId?: string | null
   description?: string | null
   createdAt?: Date | string
 }
@@ -937,11 +1113,13 @@ export type TransactionUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tenant?: Prisma.TenantUpdateOneRequiredWithoutTransactionsNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutTransactionsNestedInput
   expenseCategory?: Prisma.ExpenseCategoryUpdateOneWithoutTransactionsNestedInput
+  incomeCategory?: Prisma.IncomeCategoryUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutUserInput = {
@@ -950,7 +1128,9 @@ export type TransactionUncheckedUpdateWithoutUserInput = {
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   expenseCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incomeCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -961,7 +1141,9 @@ export type TransactionUncheckedUpdateManyWithoutUserInput = {
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   expenseCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incomeCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -973,6 +1155,8 @@ export type TransactionCreateManyExpenseCategoryInput = {
   userId: string
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
+  incomeCategoryId?: string | null
   description?: string | null
   createdAt?: Date | string
 }
@@ -981,11 +1165,13 @@ export type TransactionUpdateWithoutExpenseCategoryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tenant?: Prisma.TenantUpdateOneRequiredWithoutTransactionsNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutTransactionsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTransactionsNestedInput
+  incomeCategory?: Prisma.IncomeCategoryUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutExpenseCategoryInput = {
@@ -995,6 +1181,8 @@ export type TransactionUncheckedUpdateWithoutExpenseCategoryInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  incomeCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1006,6 +1194,60 @@ export type TransactionUncheckedUpdateManyWithoutExpenseCategoryInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  incomeCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TransactionCreateManyIncomeCategoryInput = {
+  id?: string
+  tenantId: string
+  branchId: string
+  userId: string
+  type: $Enums.TransactionType
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
+  expenseCategoryId?: string | null
+  description?: string | null
+  createdAt?: Date | string
+}
+
+export type TransactionUpdateWithoutIncomeCategoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutTransactionsNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutTransactionsNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutTransactionsNestedInput
+  expenseCategory?: Prisma.ExpenseCategoryUpdateOneWithoutTransactionsNestedInput
+}
+
+export type TransactionUncheckedUpdateWithoutIncomeCategoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  expenseCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TransactionUncheckedUpdateManyWithoutIncomeCategoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  expenseCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1019,13 +1261,16 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   userId?: boolean
   type?: boolean
   amount?: boolean
+  currency?: boolean
   expenseCategoryId?: boolean
+  incomeCategoryId?: boolean
   description?: boolean
   createdAt?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   expenseCategory?: boolean | Prisma.Transaction$expenseCategoryArgs<ExtArgs>
+  incomeCategory?: boolean | Prisma.Transaction$incomeCategoryArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1035,13 +1280,16 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   userId?: boolean
   type?: boolean
   amount?: boolean
+  currency?: boolean
   expenseCategoryId?: boolean
+  incomeCategoryId?: boolean
   description?: boolean
   createdAt?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   expenseCategory?: boolean | Prisma.Transaction$expenseCategoryArgs<ExtArgs>
+  incomeCategory?: boolean | Prisma.Transaction$incomeCategoryArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1051,13 +1299,16 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   userId?: boolean
   type?: boolean
   amount?: boolean
+  currency?: boolean
   expenseCategoryId?: boolean
+  incomeCategoryId?: boolean
   description?: boolean
   createdAt?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   expenseCategory?: boolean | Prisma.Transaction$expenseCategoryArgs<ExtArgs>
+  incomeCategory?: boolean | Prisma.Transaction$incomeCategoryArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectScalar = {
@@ -1067,29 +1318,34 @@ export type TransactionSelectScalar = {
   userId?: boolean
   type?: boolean
   amount?: boolean
+  currency?: boolean
   expenseCategoryId?: boolean
+  incomeCategoryId?: boolean
   description?: boolean
   createdAt?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "branchId" | "userId" | "type" | "amount" | "expenseCategoryId" | "description" | "createdAt", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "branchId" | "userId" | "type" | "amount" | "currency" | "expenseCategoryId" | "incomeCategoryId" | "description" | "createdAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   expenseCategory?: boolean | Prisma.Transaction$expenseCategoryArgs<ExtArgs>
+  incomeCategory?: boolean | Prisma.Transaction$incomeCategoryArgs<ExtArgs>
 }
 export type TransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   expenseCategory?: boolean | Prisma.Transaction$expenseCategoryArgs<ExtArgs>
+  incomeCategory?: boolean | Prisma.Transaction$incomeCategoryArgs<ExtArgs>
 }
 export type TransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   expenseCategory?: boolean | Prisma.Transaction$expenseCategoryArgs<ExtArgs>
+  incomeCategory?: boolean | Prisma.Transaction$incomeCategoryArgs<ExtArgs>
 }
 
 export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1099,6 +1355,7 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     branch: Prisma.$BranchPayload<ExtArgs>
     user: Prisma.$UserPayload<ExtArgs>
     expenseCategory: Prisma.$ExpenseCategoryPayload<ExtArgs> | null
+    incomeCategory: Prisma.$IncomeCategoryPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1107,7 +1364,9 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     userId: string
     type: $Enums.TransactionType
     amount: runtime.Decimal
+    currency: $Enums.Currency
     expenseCategoryId: string | null
+    incomeCategoryId: string | null
     description: string | null
     createdAt: Date
   }, ExtArgs["result"]["transaction"]>
@@ -1508,6 +1767,7 @@ export interface Prisma__TransactionClient<T, Null = never, ExtArgs extends runt
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   expenseCategory<T extends Prisma.Transaction$expenseCategoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$expenseCategoryArgs<ExtArgs>>): Prisma.Prisma__ExpenseCategoryClient<runtime.Types.Result.GetResult<Prisma.$ExpenseCategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  incomeCategory<T extends Prisma.Transaction$incomeCategoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$incomeCategoryArgs<ExtArgs>>): Prisma.Prisma__IncomeCategoryClient<runtime.Types.Result.GetResult<Prisma.$IncomeCategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1543,7 +1803,9 @@ export interface TransactionFieldRefs {
   readonly userId: Prisma.FieldRef<"Transaction", 'String'>
   readonly type: Prisma.FieldRef<"Transaction", 'TransactionType'>
   readonly amount: Prisma.FieldRef<"Transaction", 'Decimal'>
+  readonly currency: Prisma.FieldRef<"Transaction", 'Currency'>
   readonly expenseCategoryId: Prisma.FieldRef<"Transaction", 'String'>
+  readonly incomeCategoryId: Prisma.FieldRef<"Transaction", 'String'>
   readonly description: Prisma.FieldRef<"Transaction", 'String'>
   readonly createdAt: Prisma.FieldRef<"Transaction", 'DateTime'>
 }
@@ -1963,6 +2225,25 @@ export type Transaction$expenseCategoryArgs<ExtArgs extends runtime.Types.Extens
    */
   include?: Prisma.ExpenseCategoryInclude<ExtArgs> | null
   where?: Prisma.ExpenseCategoryWhereInput
+}
+
+/**
+ * Transaction.incomeCategory
+ */
+export type Transaction$incomeCategoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the IncomeCategory
+   */
+  select?: Prisma.IncomeCategorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the IncomeCategory
+   */
+  omit?: Prisma.IncomeCategoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.IncomeCategoryInclude<ExtArgs> | null
+  where?: Prisma.IncomeCategoryWhereInput
 }
 
 /**

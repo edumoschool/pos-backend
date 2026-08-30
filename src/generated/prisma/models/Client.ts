@@ -199,7 +199,9 @@ export type ClientWhereInput = {
   notes?: Prisma.StringNullableFilter<"Client"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Client"> | Date | string
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
+  clientTransactions?: Prisma.ClientTransactionListRelationFilter
   sales?: Prisma.SaleListRelationFilter
+  telegramUsers?: Prisma.TelegramUserListRelationFilter
 }
 
 export type ClientOrderByWithRelationInput = {
@@ -211,7 +213,9 @@ export type ClientOrderByWithRelationInput = {
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   tenant?: Prisma.TenantOrderByWithRelationInput
+  clientTransactions?: Prisma.ClientTransactionOrderByRelationAggregateInput
   sales?: Prisma.SaleOrderByRelationAggregateInput
+  telegramUsers?: Prisma.TelegramUserOrderByRelationAggregateInput
 }
 
 export type ClientWhereUniqueInput = Prisma.AtLeast<{
@@ -226,7 +230,9 @@ export type ClientWhereUniqueInput = Prisma.AtLeast<{
   notes?: Prisma.StringNullableFilter<"Client"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Client"> | Date | string
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
+  clientTransactions?: Prisma.ClientTransactionListRelationFilter
   sales?: Prisma.SaleListRelationFilter
+  telegramUsers?: Prisma.TelegramUserListRelationFilter
 }, "id">
 
 export type ClientOrderByWithAggregationInput = {
@@ -263,7 +269,9 @@ export type ClientCreateInput = {
   notes?: string | null
   createdAt?: Date | string
   tenant: Prisma.TenantCreateNestedOneWithoutClientsInput
+  clientTransactions?: Prisma.ClientTransactionCreateNestedManyWithoutClientInput
   sales?: Prisma.SaleCreateNestedManyWithoutClientInput
+  telegramUsers?: Prisma.TelegramUserCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateInput = {
@@ -274,7 +282,9 @@ export type ClientUncheckedCreateInput = {
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
+  clientTransactions?: Prisma.ClientTransactionUncheckedCreateNestedManyWithoutClientInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutClientInput
+  telegramUsers?: Prisma.TelegramUserUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientUpdateInput = {
@@ -285,7 +295,9 @@ export type ClientUpdateInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tenant?: Prisma.TenantUpdateOneRequiredWithoutClientsNestedInput
+  clientTransactions?: Prisma.ClientTransactionUpdateManyWithoutClientNestedInput
   sales?: Prisma.SaleUpdateManyWithoutClientNestedInput
+  telegramUsers?: Prisma.TelegramUserUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateInput = {
@@ -296,7 +308,9 @@ export type ClientUncheckedUpdateInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clientTransactions?: Prisma.ClientTransactionUncheckedUpdateManyWithoutClientNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutClientNestedInput
+  telegramUsers?: Prisma.TelegramUserUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientCreateManyInput = {
@@ -368,6 +382,11 @@ export type ClientMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
 }
 
+export type ClientScalarRelationFilter = {
+  is?: Prisma.ClientWhereInput
+  isNot?: Prisma.ClientWhereInput
+}
+
 export type ClientNullableScalarRelationFilter = {
   is?: Prisma.ClientWhereInput | null
   isNot?: Prisma.ClientWhereInput | null
@@ -415,6 +434,20 @@ export type ClientUncheckedUpdateManyWithoutTenantNestedInput = {
   deleteMany?: Prisma.ClientScalarWhereInput | Prisma.ClientScalarWhereInput[]
 }
 
+export type ClientCreateNestedOneWithoutClientTransactionsInput = {
+  create?: Prisma.XOR<Prisma.ClientCreateWithoutClientTransactionsInput, Prisma.ClientUncheckedCreateWithoutClientTransactionsInput>
+  connectOrCreate?: Prisma.ClientCreateOrConnectWithoutClientTransactionsInput
+  connect?: Prisma.ClientWhereUniqueInput
+}
+
+export type ClientUpdateOneRequiredWithoutClientTransactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClientCreateWithoutClientTransactionsInput, Prisma.ClientUncheckedCreateWithoutClientTransactionsInput>
+  connectOrCreate?: Prisma.ClientCreateOrConnectWithoutClientTransactionsInput
+  upsert?: Prisma.ClientUpsertWithoutClientTransactionsInput
+  connect?: Prisma.ClientWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClientUpdateToOneWithWhereWithoutClientTransactionsInput, Prisma.ClientUpdateWithoutClientTransactionsInput>, Prisma.ClientUncheckedUpdateWithoutClientTransactionsInput>
+}
+
 export type ClientCreateNestedOneWithoutSalesInput = {
   create?: Prisma.XOR<Prisma.ClientCreateWithoutSalesInput, Prisma.ClientUncheckedCreateWithoutSalesInput>
   connectOrCreate?: Prisma.ClientCreateOrConnectWithoutSalesInput
@@ -431,6 +464,22 @@ export type ClientUpdateOneWithoutSalesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClientUpdateToOneWithWhereWithoutSalesInput, Prisma.ClientUpdateWithoutSalesInput>, Prisma.ClientUncheckedUpdateWithoutSalesInput>
 }
 
+export type ClientCreateNestedOneWithoutTelegramUsersInput = {
+  create?: Prisma.XOR<Prisma.ClientCreateWithoutTelegramUsersInput, Prisma.ClientUncheckedCreateWithoutTelegramUsersInput>
+  connectOrCreate?: Prisma.ClientCreateOrConnectWithoutTelegramUsersInput
+  connect?: Prisma.ClientWhereUniqueInput
+}
+
+export type ClientUpdateOneWithoutTelegramUsersNestedInput = {
+  create?: Prisma.XOR<Prisma.ClientCreateWithoutTelegramUsersInput, Prisma.ClientUncheckedCreateWithoutTelegramUsersInput>
+  connectOrCreate?: Prisma.ClientCreateOrConnectWithoutTelegramUsersInput
+  upsert?: Prisma.ClientUpsertWithoutTelegramUsersInput
+  disconnect?: Prisma.ClientWhereInput | boolean
+  delete?: Prisma.ClientWhereInput | boolean
+  connect?: Prisma.ClientWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClientUpdateToOneWithWhereWithoutTelegramUsersInput, Prisma.ClientUpdateWithoutTelegramUsersInput>, Prisma.ClientUncheckedUpdateWithoutTelegramUsersInput>
+}
+
 export type ClientCreateWithoutTenantInput = {
   id?: string
   fullName: string
@@ -438,7 +487,9 @@ export type ClientCreateWithoutTenantInput = {
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
+  clientTransactions?: Prisma.ClientTransactionCreateNestedManyWithoutClientInput
   sales?: Prisma.SaleCreateNestedManyWithoutClientInput
+  telegramUsers?: Prisma.TelegramUserCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateWithoutTenantInput = {
@@ -448,7 +499,9 @@ export type ClientUncheckedCreateWithoutTenantInput = {
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
+  clientTransactions?: Prisma.ClientTransactionUncheckedCreateNestedManyWithoutClientInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutClientInput
+  telegramUsers?: Prisma.TelegramUserUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientCreateOrConnectWithoutTenantInput = {
@@ -490,6 +543,70 @@ export type ClientScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Client"> | Date | string
 }
 
+export type ClientCreateWithoutClientTransactionsInput = {
+  id?: string
+  fullName: string
+  phone?: string | null
+  address?: string | null
+  notes?: string | null
+  createdAt?: Date | string
+  tenant: Prisma.TenantCreateNestedOneWithoutClientsInput
+  sales?: Prisma.SaleCreateNestedManyWithoutClientInput
+  telegramUsers?: Prisma.TelegramUserCreateNestedManyWithoutClientInput
+}
+
+export type ClientUncheckedCreateWithoutClientTransactionsInput = {
+  id?: string
+  tenantId: string
+  fullName: string
+  phone?: string | null
+  address?: string | null
+  notes?: string | null
+  createdAt?: Date | string
+  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutClientInput
+  telegramUsers?: Prisma.TelegramUserUncheckedCreateNestedManyWithoutClientInput
+}
+
+export type ClientCreateOrConnectWithoutClientTransactionsInput = {
+  where: Prisma.ClientWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClientCreateWithoutClientTransactionsInput, Prisma.ClientUncheckedCreateWithoutClientTransactionsInput>
+}
+
+export type ClientUpsertWithoutClientTransactionsInput = {
+  update: Prisma.XOR<Prisma.ClientUpdateWithoutClientTransactionsInput, Prisma.ClientUncheckedUpdateWithoutClientTransactionsInput>
+  create: Prisma.XOR<Prisma.ClientCreateWithoutClientTransactionsInput, Prisma.ClientUncheckedCreateWithoutClientTransactionsInput>
+  where?: Prisma.ClientWhereInput
+}
+
+export type ClientUpdateToOneWithWhereWithoutClientTransactionsInput = {
+  where?: Prisma.ClientWhereInput
+  data: Prisma.XOR<Prisma.ClientUpdateWithoutClientTransactionsInput, Prisma.ClientUncheckedUpdateWithoutClientTransactionsInput>
+}
+
+export type ClientUpdateWithoutClientTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutClientsNestedInput
+  sales?: Prisma.SaleUpdateManyWithoutClientNestedInput
+  telegramUsers?: Prisma.TelegramUserUpdateManyWithoutClientNestedInput
+}
+
+export type ClientUncheckedUpdateWithoutClientTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sales?: Prisma.SaleUncheckedUpdateManyWithoutClientNestedInput
+  telegramUsers?: Prisma.TelegramUserUncheckedUpdateManyWithoutClientNestedInput
+}
+
 export type ClientCreateWithoutSalesInput = {
   id?: string
   fullName: string
@@ -498,6 +615,8 @@ export type ClientCreateWithoutSalesInput = {
   notes?: string | null
   createdAt?: Date | string
   tenant: Prisma.TenantCreateNestedOneWithoutClientsInput
+  clientTransactions?: Prisma.ClientTransactionCreateNestedManyWithoutClientInput
+  telegramUsers?: Prisma.TelegramUserCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateWithoutSalesInput = {
@@ -508,6 +627,8 @@ export type ClientUncheckedCreateWithoutSalesInput = {
   address?: string | null
   notes?: string | null
   createdAt?: Date | string
+  clientTransactions?: Prisma.ClientTransactionUncheckedCreateNestedManyWithoutClientInput
+  telegramUsers?: Prisma.TelegramUserUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientCreateOrConnectWithoutSalesInput = {
@@ -534,6 +655,8 @@ export type ClientUpdateWithoutSalesInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tenant?: Prisma.TenantUpdateOneRequiredWithoutClientsNestedInput
+  clientTransactions?: Prisma.ClientTransactionUpdateManyWithoutClientNestedInput
+  telegramUsers?: Prisma.TelegramUserUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateWithoutSalesInput = {
@@ -544,6 +667,72 @@ export type ClientUncheckedUpdateWithoutSalesInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clientTransactions?: Prisma.ClientTransactionUncheckedUpdateManyWithoutClientNestedInput
+  telegramUsers?: Prisma.TelegramUserUncheckedUpdateManyWithoutClientNestedInput
+}
+
+export type ClientCreateWithoutTelegramUsersInput = {
+  id?: string
+  fullName: string
+  phone?: string | null
+  address?: string | null
+  notes?: string | null
+  createdAt?: Date | string
+  tenant: Prisma.TenantCreateNestedOneWithoutClientsInput
+  clientTransactions?: Prisma.ClientTransactionCreateNestedManyWithoutClientInput
+  sales?: Prisma.SaleCreateNestedManyWithoutClientInput
+}
+
+export type ClientUncheckedCreateWithoutTelegramUsersInput = {
+  id?: string
+  tenantId: string
+  fullName: string
+  phone?: string | null
+  address?: string | null
+  notes?: string | null
+  createdAt?: Date | string
+  clientTransactions?: Prisma.ClientTransactionUncheckedCreateNestedManyWithoutClientInput
+  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutClientInput
+}
+
+export type ClientCreateOrConnectWithoutTelegramUsersInput = {
+  where: Prisma.ClientWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClientCreateWithoutTelegramUsersInput, Prisma.ClientUncheckedCreateWithoutTelegramUsersInput>
+}
+
+export type ClientUpsertWithoutTelegramUsersInput = {
+  update: Prisma.XOR<Prisma.ClientUpdateWithoutTelegramUsersInput, Prisma.ClientUncheckedUpdateWithoutTelegramUsersInput>
+  create: Prisma.XOR<Prisma.ClientCreateWithoutTelegramUsersInput, Prisma.ClientUncheckedCreateWithoutTelegramUsersInput>
+  where?: Prisma.ClientWhereInput
+}
+
+export type ClientUpdateToOneWithWhereWithoutTelegramUsersInput = {
+  where?: Prisma.ClientWhereInput
+  data: Prisma.XOR<Prisma.ClientUpdateWithoutTelegramUsersInput, Prisma.ClientUncheckedUpdateWithoutTelegramUsersInput>
+}
+
+export type ClientUpdateWithoutTelegramUsersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutClientsNestedInput
+  clientTransactions?: Prisma.ClientTransactionUpdateManyWithoutClientNestedInput
+  sales?: Prisma.SaleUpdateManyWithoutClientNestedInput
+}
+
+export type ClientUncheckedUpdateWithoutTelegramUsersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clientTransactions?: Prisma.ClientTransactionUncheckedUpdateManyWithoutClientNestedInput
+  sales?: Prisma.SaleUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientCreateManyTenantInput = {
@@ -562,7 +751,9 @@ export type ClientUpdateWithoutTenantInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clientTransactions?: Prisma.ClientTransactionUpdateManyWithoutClientNestedInput
   sales?: Prisma.SaleUpdateManyWithoutClientNestedInput
+  telegramUsers?: Prisma.TelegramUserUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateWithoutTenantInput = {
@@ -572,7 +763,9 @@ export type ClientUncheckedUpdateWithoutTenantInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clientTransactions?: Prisma.ClientTransactionUncheckedUpdateManyWithoutClientNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutClientNestedInput
+  telegramUsers?: Prisma.TelegramUserUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateManyWithoutTenantInput = {
@@ -590,11 +783,15 @@ export type ClientUncheckedUpdateManyWithoutTenantInput = {
  */
 
 export type ClientCountOutputType = {
+  clientTransactions: number
   sales: number
+  telegramUsers: number
 }
 
 export type ClientCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  clientTransactions?: boolean | ClientCountOutputTypeCountClientTransactionsArgs
   sales?: boolean | ClientCountOutputTypeCountSalesArgs
+  telegramUsers?: boolean | ClientCountOutputTypeCountTelegramUsersArgs
 }
 
 /**
@@ -610,8 +807,22 @@ export type ClientCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exten
 /**
  * ClientCountOutputType without action
  */
+export type ClientCountOutputTypeCountClientTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClientTransactionWhereInput
+}
+
+/**
+ * ClientCountOutputType without action
+ */
 export type ClientCountOutputTypeCountSalesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.SaleWhereInput
+}
+
+/**
+ * ClientCountOutputType without action
+ */
+export type ClientCountOutputTypeCountTelegramUsersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TelegramUserWhereInput
 }
 
 
@@ -624,7 +835,9 @@ export type ClientSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   notes?: boolean
   createdAt?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  clientTransactions?: boolean | Prisma.Client$clientTransactionsArgs<ExtArgs>
   sales?: boolean | Prisma.Client$salesArgs<ExtArgs>
+  telegramUsers?: boolean | Prisma.Client$telegramUsersArgs<ExtArgs>
   _count?: boolean | Prisma.ClientCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["client"]>
 
@@ -663,7 +876,9 @@ export type ClientSelectScalar = {
 export type ClientOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "fullName" | "phone" | "address" | "notes" | "createdAt", ExtArgs["result"]["client"]>
 export type ClientInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  clientTransactions?: boolean | Prisma.Client$clientTransactionsArgs<ExtArgs>
   sales?: boolean | Prisma.Client$salesArgs<ExtArgs>
+  telegramUsers?: boolean | Prisma.Client$telegramUsersArgs<ExtArgs>
   _count?: boolean | Prisma.ClientCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClientIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -677,7 +892,9 @@ export type $ClientPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   name: "Client"
   objects: {
     tenant: Prisma.$TenantPayload<ExtArgs>
+    clientTransactions: Prisma.$ClientTransactionPayload<ExtArgs>[]
     sales: Prisma.$SalePayload<ExtArgs>[]
+    telegramUsers: Prisma.$TelegramUserPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1082,7 +1299,9 @@ readonly fields: ClientFieldRefs;
 export interface Prisma__ClientClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   tenant<T extends Prisma.TenantDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TenantDefaultArgs<ExtArgs>>): Prisma.Prisma__TenantClient<runtime.Types.Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  clientTransactions<T extends Prisma.Client$clientTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$clientTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClientTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sales<T extends Prisma.Client$salesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$salesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  telegramUsers<T extends Prisma.Client$telegramUsersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$telegramUsersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TelegramUserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1520,6 +1739,30 @@ export type ClientDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
 }
 
 /**
+ * Client.clientTransactions
+ */
+export type Client$clientTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClientTransaction
+   */
+  select?: Prisma.ClientTransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClientTransaction
+   */
+  omit?: Prisma.ClientTransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientTransactionInclude<ExtArgs> | null
+  where?: Prisma.ClientTransactionWhereInput
+  orderBy?: Prisma.ClientTransactionOrderByWithRelationInput | Prisma.ClientTransactionOrderByWithRelationInput[]
+  cursor?: Prisma.ClientTransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClientTransactionScalarFieldEnum | Prisma.ClientTransactionScalarFieldEnum[]
+}
+
+/**
  * Client.sales
  */
 export type Client$salesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1541,6 +1784,30 @@ export type Client$salesArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.SaleScalarFieldEnum | Prisma.SaleScalarFieldEnum[]
+}
+
+/**
+ * Client.telegramUsers
+ */
+export type Client$telegramUsersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TelegramUser
+   */
+  select?: Prisma.TelegramUserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TelegramUser
+   */
+  omit?: Prisma.TelegramUserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TelegramUserInclude<ExtArgs> | null
+  where?: Prisma.TelegramUserWhereInput
+  orderBy?: Prisma.TelegramUserOrderByWithRelationInput | Prisma.TelegramUserOrderByWithRelationInput[]
+  cursor?: Prisma.TelegramUserWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TelegramUserScalarFieldEnum | Prisma.TelegramUserScalarFieldEnum[]
 }
 
 /**

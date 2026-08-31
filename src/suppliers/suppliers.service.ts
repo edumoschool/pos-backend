@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import {
+  I18nBadRequestException,
+  I18nNotFoundException,
+} from '../i18n/i18n.exception';
 import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
@@ -73,7 +77,7 @@ export class SuppliersService {
         supplierTransactions: { take: 10, orderBy: { createdAt: 'desc' } },
       },
     });
-    if (!supplier) throw new NotFoundException('Supplier not found');
+    if (!supplier) throw new I18nNotFoundException('errors.supplier.notFound');
 
     const allTransactions = await this.prisma.supplierTransaction.findMany({
       where: { tenantId, supplierId: id },
@@ -110,7 +114,7 @@ export class SuppliersService {
   async remove(tenantId: string, id: string) {
     const supplier = await this.findOne(tenantId, id);
     if (supplier.totalAmountUzs < 0 || supplier.totalAmountUsd < 0) {
-      throw new BadRequestException('Cannot delete supplier with outstanding debt');
+      throw new I18nBadRequestException('errors.supplier.hasDebt');
     }
 
     return this.prisma.supplier.delete({ where: { id } });

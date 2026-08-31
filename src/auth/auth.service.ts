@@ -1,8 +1,13 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  I18nConflictException,
+  I18nNotFoundException,
+  I18nUnauthorizedException,
+} from '../i18n/i18n.exception';
 import { SseService } from './sse.service';
 import { LoginDto, RegisterDto } from './dto';
 
@@ -20,7 +25,7 @@ export class AuthService {
       where: { phone: dto.phone },
     });
     if (existing) {
-      throw new ConflictException('Phone number already registered');
+      throw new I18nConflictException('errors.auth.phoneTaken');
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
@@ -65,12 +70,12 @@ export class AuthService {
       where: { phone: dto.phone, isActive: true },
     });
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new I18nUnauthorizedException('errors.auth.invalidCredentials');
     }
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new I18nUnauthorizedException('errors.auth.invalidCredentials');
     }
 
     const tokens = await this.generateTokens(user, ip, userAgent);
@@ -83,9 +88,33 @@ export class AuthService {
       include: { tenant: true, branch: true },
     });
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new I18nNotFoundException('errors.user.notFound');
     }
     return this.sanitizeUser(user);
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new I18nNotFoundException('errors.user.notFound');
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isValid) {
+      throw new I18nUnauthorizedException('errors.auth.currentPasswordWrong');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    return { message: 'Password changed successfully' };
   }
 
   async logout(sessionId: string) {
@@ -129,7 +158,7 @@ export class AuthService {
       where: { id: sessionId, userId, isRevoked: false },
     });
     if (!session) {
-      throw new UnauthorizedException('Session not found');
+      throw new I18nNotFoundException('errors.common.notFound');
     }
     await this.prisma.session.update({
       where: { id: sessionId },

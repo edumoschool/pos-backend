@@ -4,6 +4,8 @@ import { ReportsService } from './reports.service';
 import { ReportExportService } from './report-export.service';
 import { ExportReportDto } from './dto/export-report.dto';
 import { CurrentUser, Roles } from '../auth/decorators';
+import { Lang } from '../i18n/lang.decorator';
+import { Locale } from '../i18n/i18n.constants';
 import { UserRole } from '../generated/prisma/client';
 
 @ApiTags('Reports')
@@ -108,8 +110,9 @@ export class ReportsController {
     @CurrentUser('tenantId') tenantId: string,
     @CurrentUser('userId') userId: string,
     @Body() dto: ExportReportDto,
+    @Lang() lang: Locale,
   ) {
-    return this.reportExportService.exportReport(tenantId, userId, dto);
+    return this.reportExportService.exportReport(tenantId, userId, dto, lang);
   }
 
   @Get('exports')

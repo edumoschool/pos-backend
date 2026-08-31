@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateTenantDto, UpdateTenantDto } from './dto';
+import { I18nNotFoundException } from '../i18n/i18n.exception';
+import { CreateTenantDto, UpdateTenantDto, UpdateOwnTenantDto } from './dto';
 
 @Injectable()
 export class TenantsService {
@@ -26,7 +27,7 @@ export class TenantsService {
         _count: { select: { users: true, products: true } },
       },
     });
-    if (!tenant) throw new NotFoundException('Tenant not found');
+    if (!tenant) throw new I18nNotFoundException('errors.tenant.notFound');
     return tenant;
   }
 
@@ -35,6 +36,21 @@ export class TenantsService {
     return this.prisma.tenant.update({
       where: { id },
       data: dto as any,
+    });
+  }
+
+  /** Owner-facing: fetch the caller's own tenant. */
+  getOwn(tenantId: string) {
+    return this.findOne(tenantId);
+  }
+
+  /** Owner-facing: update a whitelisted subset of the caller's own tenant. */
+  async updateOwn(tenantId: string, dto: UpdateOwnTenantDto) {
+    await this.findOne(tenantId);
+    return this.prisma.tenant.update({
+      where: { id: tenantId },
+      data: dto as any,
+      include: { subscriptionPlan: true },
     });
   }
 

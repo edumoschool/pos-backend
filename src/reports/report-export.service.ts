@@ -1,6 +1,12 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
+import { DEFAULT_LOCALE, Locale } from '../i18n/i18n.constants';
+import {
+  I18nBadRequestException,
+  I18nNotFoundException,
+} from '../i18n/i18n.exception';
+import { I18nService } from '../i18n/i18n.service';
 import { ReportsService } from './reports.service';
 import { ExportReportDto, ExportReportType, ExportFormat } from './dto/export-report.dto';
 
@@ -10,11 +16,22 @@ export class ReportExportService {
     private prisma: PrismaService,
     private minioService: MinioService,
     private reportsService: ReportsService,
+    private i18n: I18nService,
   ) {}
 
-  async exportReport(tenantId: string, userId: string, dto: ExportReportDto) {
+  async exportReport(
+    tenantId: string,
+    userId: string,
+    dto: ExportReportDto,
+    lang: Locale = DEFAULT_LOCALE,
+  ) {
     const data = await this.getReportData(tenantId, dto);
-    const { buffer, contentType, extension } = this.generateFile(data, dto.format, dto.reportType);
+    const { buffer, contentType, extension } = this.generateFile(
+      data,
+      dto.format,
+      dto.reportType,
+      lang,
+    );
 
     const fileName = `${dto.reportType}-${Date.now()}.${extension}`;
     const objectKey = await this.minioService.uploadReport(buffer, fileName, contentType);
@@ -47,7 +64,7 @@ export class ReportExportService {
     const report = await this.prisma.report.findFirst({
       where: { id: reportId, tenantId },
     });
-    if (!report) throw new BadRequestException('Report not found');
+    if (!report) throw new I18nNotFoundException('errors.report.notFound');
 
     const url = await this.minioService.getFileUrl(report.objectKey);
     return { url, name: report.name, format: report.format };
@@ -57,7 +74,7 @@ export class ReportExportService {
     const report = await this.prisma.report.findFirst({
       where: { id: reportId, tenantId },
     });
-    if (!report) throw new BadRequestException('Report not found');
+    if (!report) throw new I18nNotFoundException('errors.report.notFound');
 
     await this.minioService.deleteImage(report.objectKey);
     await this.prisma.report.delete({ where: { id: reportId } });
@@ -82,38 +99,50 @@ export class ReportExportService {
       case ExportReportType.SUPPLIER_BALANCES:
         return this.reportsService.supplierBalances(tenantId);
       default:
-        throw new BadRequestException('Invalid report type');
+        throw new I18nBadRequestException('errors.report.invalidType');
     }
+  }
+
+  /** Localised report title for a report type. */
+  private title(reportType: string, lang: Locale): string {
+    return this.i18n.translate(`report.titles.${reportType}`, lang);
+  }
+
+  /** Localised column header for a data key (falls back to the raw key). */
+  private column(key: string, lang: Locale): string {
+    return this.i18n.translate(`report.columns.${key}`, lang);
   }
 
   private generateFile(
     data: any,
     format: ExportFormat,
     reportType: string,
+    lang: Locale,
   ): { buffer: Buffer; contentType: string; extension: string } {
     switch (format) {
       case ExportFormat.CSV:
-        return this.generateCsv(data, reportType);
+        return this.generateCsv(data, reportType, lang);
       case ExportFormat.EXCEL:
-        return this.generateExcel(data, reportType);
+        return this.generateExcel(data, reportType, lang);
       case ExportFormat.PDF:
-        return this.generatePdf(data, reportType);
+        return this.generatePdf(data, reportType, lang);
       default:
-        throw new BadRequestException('Invalid export format');
+        throw new I18nBadRequestException('errors.report.invalidFormat');
     }
   }
 
-  private generateCsv(data: any, reportType: string): { buffer: Buffer; contentType: string; extension: string } {
+  private generateCsv(data: any, reportType: string, lang: Locale): { buffer: Buffer; contentType: string; extension: string } {
     const rows = this.flattenData(data, reportType);
+    const noData = this.i18n.translate('report.noData', lang);
     if (rows.length === 0) {
-      return { buffer: Buffer.from('No data', 'utf-8'), contentType: 'text/csv', extension: 'csv' };
+      return { buffer: Buffer.from(noData, 'utf-8'), contentType: 'text/csv', extension: 'csv' };
     }
 
-    const headers = Object.keys(rows[0]);
+    const keys = Object.keys(rows[0]);
     const csvLines = [
-      headers.join(','),
+      keys.map((k) => this.column(k, lang)).join(','),
       ...rows.map((row) =>
-        headers.map((h) => {
+        keys.map((h) => {
           const val = row[h] ?? '';
           return typeof val === 'string' && val.includes(',') ? `"${val}"` : String(val);
         }).join(','),
@@ -124,32 +153,33 @@ export class ReportExportService {
     return { buffer, contentType: 'text/csv', extension: 'csv' };
   }
 
-  private generateExcel(data: any, reportType: string): { buffer: Buffer; contentType: string; extension: string } {
+  private generateExcel(data: any, reportType: string, lang: Locale): { buffer: Buffer; contentType: string; extension: string } {
     // Generate as tab-separated values (TSV) which Excel can open natively
     // For full .xlsx support, install exceljs package
     const rows = this.flattenData(data, reportType);
+    const noData = this.i18n.translate('report.noData', lang);
     if (rows.length === 0) {
-      return { buffer: Buffer.from('No data', 'utf-8'), contentType: 'application/vnd.ms-excel', extension: 'xls' };
+      return { buffer: Buffer.from(noData, 'utf-8'), contentType: 'application/vnd.ms-excel', extension: 'xls' };
     }
 
-    const headers = Object.keys(rows[0]);
+    const keys = Object.keys(rows[0]);
     const tsvLines = [
-      headers.join('\t'),
-      ...rows.map((row) => headers.map((h) => String(row[h] ?? '')).join('\t')),
+      keys.map((k) => this.column(k, lang)).join('\t'),
+      ...rows.map((row) => keys.map((h) => String(row[h] ?? '')).join('\t')),
     ];
 
     const buffer = Buffer.from(tsvLines.join('\n'), 'utf-8');
     return { buffer, contentType: 'application/vnd.ms-excel', extension: 'xls' };
   }
 
-  private generatePdf(data: any, reportType: string): { buffer: Buffer; contentType: string; extension: string } {
+  private generatePdf(data: any, reportType: string, lang: Locale): { buffer: Buffer; contentType: string; extension: string } {
     // Generate a simple text-based PDF
     // For rich PDF generation, install pdfkit or puppeteer
     const rows = this.flattenData(data, reportType);
-    const title = reportType.replace(/-/g, ' ').toUpperCase();
+    const title = this.title(reportType, lang).toUpperCase();
     const content = rows.length > 0
-      ? `${title}\n${'='.repeat(title.length)}\n\n${Object.keys(rows[0]).join(' | ')}\n${rows.map((r) => Object.values(r).join(' | ')).join('\n')}`
-      : `${title}\n\nNo data available`;
+      ? `${title}\n${'='.repeat(title.length)}\n\n${Object.keys(rows[0]).map((k) => this.column(k, lang)).join(' | ')}\n${rows.map((r) => Object.values(r).join(' | ')).join('\n')}`
+      : `${title}\n\n${this.i18n.translate('report.noData', lang)}`;
 
     // Minimal PDF structure
     const pdfContent = this.buildMinimalPdf(content);

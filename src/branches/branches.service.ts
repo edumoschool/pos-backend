@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { I18nNotFoundException } from '../i18n/i18n.exception';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBranchDto, UpdateBranchDto } from './dto';
 import { paginateParams, paginated } from '../common/helpers/paginate';
@@ -30,7 +31,7 @@ export class BranchesService {
         _count: { select: { users: true, sales: true, transactions: true } },
       },
     });
-    if (!branch) throw new NotFoundException('Branch not found');
+    if (!branch) throw new I18nNotFoundException('errors.branch.notFound');
     return branch;
   }
 

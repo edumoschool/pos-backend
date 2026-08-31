@@ -1,61 +1,44 @@
-type Language = 'uz' | 'en' | 'ru';
+/**
+ * Push-notification copy, localised to the *recipient's* language.
+ *
+ * The strings themselves live in the shared i18n catalogue
+ * (`src/i18n/translations/*`). This module only adapts them to the
+ * `(args) => string` shape the notification/cron code already expects, so
+ * there is a single source of truth for every translation in the backend.
+ */
+import { DEFAULT_LOCALE, resolveLocale } from '../i18n/i18n.constants';
+import { en } from '../i18n/translations/en';
+import { ru } from '../i18n/translations/ru';
+import { uz } from '../i18n/translations/uz';
 
-const lowStockMessages: Record<Language, {
-  title: string;
-  single: (productName: string, quantity: number) => string;
-  multi: (count: number, itemsList: string) => string;
-  itemFormat: (productName: string, quantity: number) => string;
-}> = {
-  en: {
-    title: '⚠️ Low Stock Alert',
-    single: (name, qty) => `${name} is running low — only ${qty} left`,
-    multi: (count, items) => `${count} products are running low:\n${items}`,
-    itemFormat: (name, qty) => `${name}: ${qty} left`,
-  },
-  uz: {
-    title: '⚠️ Kam qoldiq',
-    single: (name, qty) => `${name} kam qoldi — faqat ${qty} ta qoldi`,
-    multi: (count, items) => `${count} ta mahsulot kam qoldi:\n${items}`,
-    itemFormat: (name, qty) => `${name}: ${qty} ta qoldi`,
-  },
-  ru: {
-    title: '⚠️ Мало на складе',
-    single: (name, qty) => `${name} заканчивается — осталось только ${qty}`,
-    multi: (count, items) => `${count} товаров заканчиваются:\n${items}`,
-    itemFormat: (name, qty) => `${name}: осталось ${qty}`,
-  },
-};
+const catalogs = { en, uz, ru };
 
-const debtReminderMessages: Record<Language, {
-  title: string;
-  single: (clientName: string, amount: string, dueDate: string) => string;
-  multi: (count: number, itemsList: string) => string;
-  itemFormat: (clientName: string, amount: string, dueDate: string) => string;
-}> = {
-  en: {
-    title: '💰 Debt Reminder',
-    single: (client, amount, date) => `${client} owes ${amount} — due ${date}`,
-    multi: (count, items) => `${count} upcoming debts:\n${items}`,
-    itemFormat: (client, amount, date) => `${client}: ${amount} (due ${date})`,
-  },
-  uz: {
-    title: '💰 Qarz eslatmasi',
-    single: (client, amount, date) => `${client} — ${amount} qarz, muddat: ${date}`,
-    multi: (count, items) => `${count} ta yaqinlashayotgan qarz:\n${items}`,
-    itemFormat: (client, amount, date) => `${client}: ${amount} (muddat: ${date})`,
-  },
-  ru: {
-    title: '💰 Напоминание о долге',
-    single: (client, amount, date) => `${client} должен ${amount} — срок: ${date}`,
-    multi: (count, items) => `${count} предстоящих долгов:\n${items}`,
-    itemFormat: (client, amount, date) => `${client}: ${amount} (срок: ${date})`,
-  },
-};
+function fill(template: string, args: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (m, k) => (k in args ? String(args[k]) : m));
+}
+
+function catalogFor(lang: string | null | undefined) {
+  return catalogs[resolveLocale(lang)] ?? catalogs[DEFAULT_LOCALE];
+}
 
 export function getLowStockMessage(lang: string | null | undefined) {
-  return lowStockMessages[(lang as Language) ?? 'en'] ?? lowStockMessages.en;
+  const c = catalogFor(lang).notifications.lowStock;
+  return {
+    title: c.title,
+    single: (name: string, quantity: number) => fill(c.single, { name, quantity }),
+    multi: (count: number, itemsList: string) => fill(c.multi, { count, items: itemsList }),
+    itemFormat: (name: string, quantity: number) => fill(c.item, { name, quantity }),
+  };
 }
 
 export function getDebtReminderMessage(lang: string | null | undefined) {
-  return debtReminderMessages[(lang as Language) ?? 'en'] ?? debtReminderMessages.en;
+  const c = catalogFor(lang).notifications.debt;
+  return {
+    title: c.title,
+    single: (clientName: string, amount: string, dueDate: string) =>
+      fill(c.single, { client: clientName, amount, dueDate }),
+    multi: (count: number, itemsList: string) => fill(c.multi, { count, items: itemsList }),
+    itemFormat: (clientName: string, amount: string, dueDate: string) =>
+      fill(c.item, { client: clientName, amount, dueDate }),
+  };
 }

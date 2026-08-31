@@ -2,10 +2,11 @@ import { Controller, Get, Post, Body, Param, Delete, Query, ParseUUIDPipe } from
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { SupplierTransactionsService } from './supplier-transactions.service';
 import { CreateSupplierTransactionDto } from './dto';
-import { CurrentUser } from '../auth/decorators';
+import { CurrentUser, Roles } from '../auth/decorators';
 
 @ApiTags('Supplier Transactions')
 @ApiBearerAuth()
+@Roles('owner', 'super_admin')
 @Controller('supplier-transactions')
 export class SupplierTransactionsController {
   constructor(private service: SupplierTransactionsService) {}

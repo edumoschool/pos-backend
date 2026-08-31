@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { TenantsService } from './tenants.service';
-import { CreateTenantDto, UpdateTenantDto } from './dto';
-import { Roles } from '../auth/decorators';
+import { CreateTenantDto, UpdateTenantDto, UpdateOwnTenantDto } from './dto';
+import { CurrentUser, Roles } from '../auth/decorators';
 
 @ApiTags('Tenants')
 @ApiBearerAuth()
@@ -22,6 +22,25 @@ export class TenantsController {
   @ApiOperation({ summary: 'List all tenants (super_admin only)' })
   findAll() {
     return this.service.findAll();
+  }
+
+  // ── Owner self-service (must be declared before the :id routes) ──────────
+
+  @Get('me')
+  @Roles('owner', 'super_admin')
+  @ApiOperation({ summary: "Get the current user's own tenant (business) profile" })
+  getMine(@CurrentUser('tenantId') tenantId: string) {
+    return this.service.getOwn(tenantId);
+  }
+
+  @Patch('me')
+  @Roles('owner', 'super_admin')
+  @ApiOperation({ summary: "Update the current user's own tenant (name / language)" })
+  updateMine(
+    @CurrentUser('tenantId') tenantId: string,
+    @Body() dto: UpdateOwnTenantDto,
+  ) {
+    return this.service.updateOwn(tenantId, dto);
   }
 
   @Get(':id')

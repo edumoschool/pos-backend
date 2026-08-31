@@ -1,12 +1,10 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException,
-  Optional,
-} from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  I18nBadRequestException,
+  I18nNotFoundException,
+} from '../i18n/i18n.exception';
 import { NotificationsService } from '../notifications/notifications.service';
 import { TelegramService } from '../telegram/telegram.service';
 import { CreateSaleDto } from './dto';
@@ -53,9 +51,9 @@ export class SalesService {
       if (products.length !== productIds.length) {
         const foundIds = products.map((p) => p.id);
         const missing = productIds.filter((id) => !foundIds.includes(id));
-        throw new NotFoundException(
-          `Products not found or inactive: ${missing.join(', ')}`,
-        );
+        throw new I18nNotFoundException('errors.sale.productsNotFound', {
+          ids: missing.join(', '),
+        });
       }
 
       const productMap = new Map(products.map((p) => [p.id, p]));
@@ -65,15 +63,17 @@ export class SalesService {
         const inventory = product.inventory[0];
 
         if (!inventory) {
-          throw new BadRequestException(
-            `No inventory record for product "${product.name}"`,
-          );
+          throw new I18nBadRequestException('errors.sale.noInventory', {
+            name: product.name,
+          });
         }
 
         if (new Prisma.Decimal(inventory.quantity).lessThan(item.quantity)) {
-          throw new BadRequestException(
-            `Insufficient stock for "${product.name}": available ${inventory.quantity}, requested ${item.quantity}`,
-          );
+          throw new I18nBadRequestException('errors.sale.insufficientStock', {
+            name: product.name,
+            available: String(inventory.quantity),
+            requested: item.quantity,
+          });
         }
       }
 
@@ -108,15 +108,14 @@ export class SalesService {
       const status = debtAmount.greaterThan(0) ? 'debt' : 'completed';
 
       if (paidAmount.greaterThan(totalAmount)) {
-        throw new BadRequestException(
-          `Paid amount (${paidAmount}) cannot exceed total amount (${totalAmount})`,
-        );
+        throw new I18nBadRequestException('errors.sale.paidExceedsTotal', {
+          paid: String(paidAmount),
+          total: String(totalAmount),
+        });
       }
 
       if (debtAmount.greaterThan(0) && !dto.clientId) {
-        throw new BadRequestException(
-          'A client must be specified when paidAmount is less than the total (debt sale)',
-        );
+        throw new I18nBadRequestException('errors.sale.clientRequiredForDebt');
       }
 
       // ── 3. Create Sale ─────────────────────────────────────────────
@@ -155,8 +154,9 @@ export class SalesService {
         });
 
         if (result.count === 0) {
-          throw new BadRequestException(
-            `Insufficient stock for "${product.name}": another sale consumed it concurrently`,
+          throw new I18nBadRequestException(
+            'errors.sale.insufficientStockConcurrent',
+            { name: product.name },
           );
         }
 
@@ -285,7 +285,7 @@ export class SalesService {
         clientTransactions: true,
       },
     });
-    if (!sale) throw new NotFoundException('Sale not found');
+    if (!sale) throw new I18nNotFoundException('errors.sale.notFound');
     return sale;
   }
 
@@ -295,7 +295,7 @@ export class SalesService {
     const sale = await this.findOne(id, tenantId);
 
     if (sale.status === 'cancelled') {
-      throw new BadRequestException('Sale is already cancelled');
+      throw new I18nBadRequestException('errors.sale.alreadyCancelled');
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -308,7 +308,7 @@ export class SalesService {
       });
 
       if (claimed.count === 0) {
-        throw new BadRequestException('Sale is already cancelled');
+        throw new I18nBadRequestException('errors.sale.alreadyCancelled');
       }
 
       // Restore inventory for each item

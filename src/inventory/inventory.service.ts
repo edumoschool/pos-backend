@@ -1,4 +1,5 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { I18nNotFoundException } from '../i18n/i18n.exception';
 import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -74,7 +75,7 @@ export class InventoryService {
         },
       },
     });
-    if (!inventory) throw new NotFoundException('Inventory record not found');
+    if (!inventory) throw new I18nNotFoundException('errors.inventory.notFound');
     return inventory;
   }
 

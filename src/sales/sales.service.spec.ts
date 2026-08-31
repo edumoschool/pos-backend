@@ -237,7 +237,7 @@ describe('SalesService.create', () => {
         paymentMethod: 'cash',
         paidAmount: 1000,
       } as any),
-    ).rejects.toThrow(/concurrently/);
+    ).rejects.toThrow(/insufficientStockConcurrent/);
 
     expect(state.stock).toBe(0);
   });

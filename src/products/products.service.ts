@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
+import { I18nNotFoundException } from '../i18n/i18n.exception';
 import { CreateProductDto, UpdateProductDto } from './dto';
 import { paginateParams, paginated } from '../common/helpers/paginate';
 
@@ -100,7 +101,7 @@ export class ProductsService {
         inventory: true,
       },
     });
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new I18nNotFoundException('errors.product.notFound');
     const inventory = product.inventory && product.inventory.length > 0 ? product.inventory[0] : null;
     return this.resolveImageUrl({
       ...product,

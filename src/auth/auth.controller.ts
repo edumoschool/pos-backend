@@ -1,9 +1,9 @@
-import { Controller, Post, Body, Get, HttpCode, HttpStatus, Req, Param, Delete, ParseUUIDPipe, Sse, MessageEvent } from '@nestjs/common';
+import { Controller, Post, Patch, Body, Get, HttpCode, HttpStatus, Req, Param, Delete, ParseUUIDPipe, Sse, MessageEvent } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 import { SseService } from './sse.service';
-import { LoginDto, RegisterDto } from './dto';
+import { LoginDto, RegisterDto, ChangePasswordDto } from './dto';
 import { Public, CurrentUser } from './decorators';
 import { Request } from 'express';
 
@@ -35,6 +35,21 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current user profile' })
   getProfile(@CurrentUser('userId') userId: string) {
     return this.authService.getProfile(userId);
+  }
+
+  @Patch('change-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change current user password (verifies current password)' })
+  changePassword(
+    @CurrentUser('userId') userId: string,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(
+      userId,
+      dto.currentPassword,
+      dto.newPassword,
+    );
   }
 
   @Post('logout')

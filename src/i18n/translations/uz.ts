@@ -44,6 +44,13 @@ export const uz: TranslationCatalog = {
       notFound: 'Mijoz topilmadi.',
       hasDebt: 'Mijozda qarz bor, uni o‘chirib bo‘lmaydi.',
     },
+    clientTransaction: {
+      saleLinkRequiresIncome: 'Sotuvga bog‘langan to‘lov turi "kirim" bo‘lishi kerak.',
+      saleClientMismatch: 'Bu sotuv ushbu mijozga tegishli emas.',
+      currencyMismatch: 'Bu sotuv {expected} da rasmiylashtirilgan — {received} to‘lovni unga qo‘llab bo‘lmaydi.',
+      exceedsDebt: 'To‘lov ({amount}) qolgan qarzdan ({remaining}) oshmasligi kerak.',
+      amountMustBePositive: 'Noldan katta summa kiriting.',
+    },
     supplier: {
       notFound: 'Yetkazib beruvchi topilmadi.',
       hasDebt: 'Yetkazib beruvchida qarz bor, uni o‘chirib bo‘lmaydi.',

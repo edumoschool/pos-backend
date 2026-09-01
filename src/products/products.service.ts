@@ -42,6 +42,11 @@ export class ProductsService {
           tenantId,
           quantity: quantity ?? 0,
           minQuantity: minQuantity ?? 0,
+          // Seed the inventory's own cost fields from the product so sale-item
+          // cost snapshots and stock-value reports aren't silently priced at 0
+          // until someone happens to touch the inventory record directly.
+          costPrice: productData.costPrice ?? 0,
+          costCurrency: productData.currency ?? 'UZS',
         },
       });
 
@@ -119,13 +124,22 @@ export class ProductsService {
         data: productData,
       });
 
-      // Sync inventory fields if provided
-      if (quantity !== undefined || minQuantity !== undefined) {
+      // Sync inventory fields if provided — costPrice/currency included, so the
+      // inventory record (used for sale-item cost snapshots and stock-value
+      // reports) never drifts from what the product form actually saved.
+      if (
+        quantity !== undefined ||
+        minQuantity !== undefined ||
+        productData.costPrice !== undefined ||
+        productData.currency !== undefined
+      ) {
         await tx.inventory.updateMany({
           where: { productId: id, tenantId },
           data: {
             ...(quantity !== undefined && { quantity }),
             ...(minQuantity !== undefined && { minQuantity }),
+            ...(productData.costPrice !== undefined && { costPrice: productData.costPrice }),
+            ...(productData.currency !== undefined && { costCurrency: productData.currency }),
           },
         });
       }

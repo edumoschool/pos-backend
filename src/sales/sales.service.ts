@@ -87,9 +87,13 @@ export class SalesService {
         const unitPrice = new Prisma.Decimal(
           item.unitPrice ?? product.sellingPrice,
         );
-        const costPrice = new Prisma.Decimal(
-          product.inventory[0].costPrice || product.costPrice,
-        );
+        // `inventory[0].costPrice` is a Prisma.Decimal — an object, so `||`
+        // never falls through to product.costPrice even when its value is 0.
+        // Check the numeric value explicitly instead.
+        const inventoryCostPrice = new Prisma.Decimal(product.inventory[0].costPrice);
+        const costPrice = inventoryCostPrice.isZero()
+          ? new Prisma.Decimal(product.costPrice)
+          : inventoryCostPrice;
         const totalPrice = unitPrice.times(item.quantity);
         totalAmount = totalAmount.plus(totalPrice);
 

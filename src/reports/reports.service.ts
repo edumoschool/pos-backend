@@ -173,9 +173,16 @@ export class ReportsService {
       orderBy: { quantity: 'asc' },
     });
 
+    // `i.costPrice` is a Prisma.Decimal — an object, so `i.costPrice ||
+    // i.product.costPrice` never falls through to the product's cost even
+    // when the inventory's own cost is unset (0). Convert to Number first so
+    // the fallback actually triggers for legacy inventory rows.
+    const effectiveCostPrice = (i: (typeof items)[number]) =>
+      Number(i.costPrice) || Number(i.product.costPrice);
+
     const totalItems = items.length;
     const totalStockValue = items.reduce(
-      (sum, i) => sum + Number(i.quantity) * Number(i.costPrice || i.product.costPrice),
+      (sum, i) => sum + Number(i.quantity) * effectiveCostPrice(i),
       0,
     );
     const lowStockItems = items.filter(
@@ -186,19 +193,22 @@ export class ReportsService {
       totalItems,
       totalStockValue: +totalStockValue.toFixed(2),
       lowStockCount: lowStockItems.length,
-      items: items.map((i) => ({
-        inventoryId: i.id,
-        product: i.product,
-        supplier: i.supplier,
-        quantity: Number(i.quantity),
-        minQuantity: i.minQuantity ? Number(i.minQuantity) : null,
-        maxQuantity: i.maxQuantity ? Number(i.maxQuantity) : null,
-        costPrice: Number(i.costPrice),
-        costCurrency: i.costCurrency,
-        location: i.location,
-        isLowStock: i.minQuantity !== null && Number(i.quantity) <= Number(i.minQuantity),
-        stockValue: +(Number(i.quantity) * Number(i.costPrice)).toFixed(2),
-      })),
+      items: items.map((i) => {
+        const costPrice = effectiveCostPrice(i);
+        return {
+          inventoryId: i.id,
+          product: i.product,
+          supplier: i.supplier,
+          quantity: Number(i.quantity),
+          minQuantity: i.minQuantity ? Number(i.minQuantity) : null,
+          maxQuantity: i.maxQuantity ? Number(i.maxQuantity) : null,
+          costPrice,
+          costCurrency: i.costCurrency,
+          location: i.location,
+          isLowStock: i.minQuantity !== null && Number(i.quantity) <= Number(i.minQuantity),
+          stockValue: +(Number(i.quantity) * costPrice).toFixed(2),
+        };
+      }),
     };
   }
 

@@ -25,6 +25,15 @@ export class CreateClientTransactionDto {
   @IsNotEmpty()
   clientId: string;
 
+  @ApiPropertyOptional({
+    example: 'uuid',
+    description:
+      'Debt sale this payment settles. type must be "income"; the amount is applied to that sale\'s paidAmount/debtAmount (capped at what is still owed) instead of only affecting the client\'s overall balance.',
+  })
+  @IsOptional()
+  @IsUUID()
+  saleId?: string;
+
   @ApiProperty({ enum: PartyTransactionType, description: 'income = client pays us; outcome = debt issued to client' })
   @IsEnum(PartyTransactionType)
   type: PartyTransactionType;

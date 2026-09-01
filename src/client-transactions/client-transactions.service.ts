@@ -3,8 +3,19 @@ import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
 import { TelegramService } from '../telegram/telegram.service';
+import { Prisma } from '../generated/prisma/client';
+import {
+  I18nBadRequestException,
+  I18nNotFoundException,
+} from '../i18n/i18n.exception';
 import { CreateClientTransactionDto } from './dto';
 import { paginateParams, paginated } from '../common/helpers/paginate';
+
+const TX_INCLUDE = {
+  client: { select: { id: true, fullName: true, phone: true } },
+  user: { select: { id: true, fullName: true } },
+  sale: { select: { id: true, status: true, totalAmount: true, paidAmount: true, debtAmount: true } },
+} as const;
 
 @Injectable()
 export class ClientTransactionsService {
@@ -21,50 +32,98 @@ export class ClientTransactionsService {
     const client = await this.prisma.client.findFirst({
       where: { id: dto.clientId, tenantId },
     });
-    if (!client) throw new NotFoundException('Client not found');
+    if (!client) throw new I18nNotFoundException('errors.client.notFound');
 
-    const tx = await this.prisma.clientTransaction.create({
-      data: { ...dto, tenantId, userId } as any,
-      include: {
-        client: { select: { id: true, fullName: true, phone: true } },
-        user: { select: { id: true, fullName: true } },
-      },
-    });
+    const tx = dto.saleId
+      ? await this.createSalePayment(tenantId, userId, client.id, dto)
+      : await this.prisma.clientTransaction.create({
+          data: { ...dto, tenantId, userId } as any,
+          include: TX_INCLUDE,
+        });
 
-    // Push Telegram notification to the client if they have a linked account
-    if (this.telegram) {
-      const date = this.telegram.fmtDate(tx.createdAt);
-      const amount = Number(tx.amount);
-      const currency = tx.currency as string;
-
-      this.telegram
-        .getClientBalance(tenantId, dto.clientId)
-        .then(({ balanceUzs, balanceUsd }) => {
-          if ((tx.type as string) === 'income') {
-            // Payment received — client's debt went down
-            return this.telegram.notifyClientPaymentReceived(dto.clientId, {
-              date,
-              amount,
-              currency,
-              balanceUzs,
-              balanceUsd,
-            });
-          } else {
-            // New debt created manually (not from a sale)
-            return this.telegram.notifyClientNewDebt(dto.clientId, {
-              date,
-              amount,
-              currency,
-              description: tx.description ?? undefined,
-              balanceUzs,
-              balanceUsd,
-            });
-          }
-        })
-        .catch((err) => this.logger.warn('Telegram notification failed', err));
-    }
+    this.notifyTelegram(tenantId, dto, tx).catch((err) =>
+      this.logger.warn('Telegram notification failed', err),
+    );
 
     return tx;
+  }
+
+  /**
+   * Pay down (fully or partially) a specific debt sale. Keeps `Sale.paidAmount`
+   * / `debtAmount` / `status` in sync with the client-transaction ledger —
+   * without this, a sale's own debt fields never move again after creation,
+   * even once the client has actually paid it off.
+   */
+  private async createSalePayment(
+    tenantId: string,
+    userId: string,
+    clientId: string,
+    dto: CreateClientTransactionDto,
+  ) {
+    if (dto.type !== 'income') {
+      throw new I18nBadRequestException('errors.clientTransaction.saleLinkRequiresIncome');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const sale = await tx.sale.findFirst({ where: { id: dto.saleId, tenantId } });
+      if (!sale) throw new I18nNotFoundException('errors.sale.notFound');
+      if (sale.clientId !== clientId) {
+        throw new I18nBadRequestException('errors.clientTransaction.saleClientMismatch');
+      }
+      if (sale.status === 'cancelled') {
+        throw new I18nBadRequestException('errors.sale.alreadyCancelled');
+      }
+
+      const currency = dto.currency ?? sale.currency;
+      if (currency !== sale.currency) {
+        throw new I18nBadRequestException('errors.clientTransaction.currencyMismatch', {
+          expected: sale.currency,
+          received: currency,
+        });
+      }
+
+      const amount = new Prisma.Decimal(dto.amount);
+      const remaining = new Prisma.Decimal(sale.debtAmount);
+
+      if (amount.lessThanOrEqualTo(0)) {
+        throw new I18nBadRequestException('errors.clientTransaction.amountMustBePositive');
+      }
+      if (amount.greaterThan(remaining)) {
+        throw new I18nBadRequestException('errors.clientTransaction.exceedsDebt', {
+          amount: String(amount),
+          remaining: String(remaining),
+        });
+      }
+
+      const created = await tx.clientTransaction.create({
+        data: {
+          tenantId,
+          clientId,
+          userId,
+          saleId: sale.id,
+          type: 'income',
+          amount,
+          currency,
+          paymentMethod: dto.paymentMethod ?? null,
+          description: dto.description ?? `Payment for sale #${sale.id}`,
+        },
+        include: TX_INCLUDE,
+      });
+
+      const paidAmount = new Prisma.Decimal(sale.paidAmount).plus(amount);
+      const debtAmount = Prisma.Decimal.max(0, remaining.minus(amount));
+
+      await tx.sale.update({
+        where: { id: sale.id },
+        data: {
+          paidAmount,
+          debtAmount,
+          status: debtAmount.isZero() ? 'completed' : 'debt',
+        },
+      });
+
+      return created;
+    });
   }
 
   async findAll(tenantId: string, clientId?: string, page = 1, limit = 20) {
@@ -76,10 +135,7 @@ export class ClientTransactionsService {
     const [data, total] = await Promise.all([
       this.prisma.clientTransaction.findMany({
         where,
-        include: {
-          client: { select: { id: true, fullName: true, phone: true } },
-          user: { select: { id: true, fullName: true } },
-        },
+        include: TX_INCLUDE,
         orderBy: { createdAt: 'desc' },
         skip,
         take,
@@ -92,18 +148,46 @@ export class ClientTransactionsService {
   async findOne(tenantId: string, id: string) {
     const tx = await this.prisma.clientTransaction.findFirst({
       where: { id, tenantId },
-      include: {
-        client: { select: { id: true, fullName: true, phone: true } },
-        user: { select: { id: true, fullName: true } },
-      },
+      include: TX_INCLUDE,
     });
     if (!tx) throw new NotFoundException('Client transaction not found');
     return tx;
   }
 
   async remove(tenantId: string, id: string) {
-    await this.findOne(tenantId, id);
-    return this.prisma.clientTransaction.delete({ where: { id } });
+    const record = await this.prisma.clientTransaction.findFirst({
+      where: { id, tenantId },
+    });
+    if (!record) throw new I18nNotFoundException('errors.common.notFound');
+
+    return this.prisma.$transaction(async (tx) => {
+      const deleted = await tx.clientTransaction.delete({ where: { id } });
+
+      // Reverse the effect on the linked sale, mirroring create()'s sync so
+      // the sale's debt fields don't drift when a payment is undone.
+      if (deleted.saleId && deleted.type === 'income') {
+        const sale = await tx.sale.findUnique({ where: { id: deleted.saleId } });
+        if (sale && sale.status !== 'cancelled') {
+          const amount = new Prisma.Decimal(deleted.amount);
+          const paidAmount = Prisma.Decimal.max(0, new Prisma.Decimal(sale.paidAmount).minus(amount));
+          const debtAmount = Prisma.Decimal.min(
+            sale.totalAmount,
+            new Prisma.Decimal(sale.debtAmount).plus(amount),
+          );
+
+          await tx.sale.update({
+            where: { id: sale.id },
+            data: {
+              paidAmount,
+              debtAmount,
+              status: debtAmount.greaterThan(0) ? 'debt' : 'completed',
+            },
+          });
+        }
+      }
+
+      return deleted;
+    });
   }
 
   /**
@@ -113,7 +197,7 @@ export class ClientTransactionsService {
     const client = await this.prisma.client.findFirst({
       where: { id: clientId, tenantId },
     });
-    if (!client) throw new NotFoundException('Client not found');
+    if (!client) throw new I18nNotFoundException('errors.client.notFound');
 
     const transactions = await this.prisma.clientTransaction.findMany({
       where: { tenantId, clientId },
@@ -178,5 +262,41 @@ export class ClientTransactionsService {
     const url = await this.minioService.getFileUrl(objectKey);
 
     return { url, fileName };
+  }
+
+  private async notifyTelegram(
+    tenantId: string,
+    dto: CreateClientTransactionDto,
+    tx: { createdAt: Date; amount: Prisma.Decimal | number; currency: string; description: string | null },
+  ) {
+    if (!this.telegram) return;
+
+    const date = this.telegram.fmtDate(tx.createdAt);
+    const amount = Number(tx.amount);
+    const currency = tx.currency;
+
+    const { balanceUzs, balanceUsd } = await this.telegram.getClientBalance(tenantId, dto.clientId);
+
+    if (dto.type === 'income') {
+      // Payment received — client's debt went down (whether or not it was
+      // linked to a specific sale).
+      await this.telegram.notifyClientPaymentReceived(dto.clientId, {
+        date,
+        amount,
+        currency,
+        balanceUzs,
+        balanceUsd,
+      });
+    } else {
+      // New debt created manually (not from a sale)
+      await this.telegram.notifyClientNewDebt(dto.clientId, {
+        date,
+        amount,
+        currency,
+        description: tx.description ?? undefined,
+        balanceUzs,
+        balanceUsd,
+      });
+    }
   }
 }

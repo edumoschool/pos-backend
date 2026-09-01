@@ -242,7 +242,7 @@ export type InventoryMovementGroupByOutputType = {
   _max: InventoryMovementMaxAggregateOutputType | null
 }
 
-type GetInventoryMovementGroupByPayload<T extends InventoryMovementGroupByArgs> = Prisma.PrismaPromise<
+export type GetInventoryMovementGroupByPayload<T extends InventoryMovementGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<InventoryMovementGroupByOutputType, T['by']> &
       {

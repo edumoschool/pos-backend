@@ -18,6 +18,11 @@ export class CreateProductDto {
   @IsString()
   description?: string;
 
+  @ApiPropertyOptional({ example: '8901234567890', description: 'Barcode / SKU code' })
+  @IsOptional()
+  @IsString()
+  sku?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()
@@ -75,4 +80,9 @@ export class CreateProductDto {
   @Min(0)
   @Type(() => Number)
   minQuantity?: number;
+
+  @ApiPropertyOptional({ description: 'Supplier to link the initial inventory record to' })
+  @IsOptional()
+  @IsUUID()
+  supplierId?: string;
 }

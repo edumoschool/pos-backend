@@ -44,6 +44,7 @@ export type ProductMinAggregateOutputType = {
   unitId: string | null
   name: string | null
   description: string | null
+  sku: string | null
   costPrice: runtime.Decimal | null
   sellingPrice: runtime.Decimal | null
   currency: $Enums.Currency | null
@@ -61,6 +62,7 @@ export type ProductMaxAggregateOutputType = {
   unitId: string | null
   name: string | null
   description: string | null
+  sku: string | null
   costPrice: runtime.Decimal | null
   sellingPrice: runtime.Decimal | null
   currency: $Enums.Currency | null
@@ -78,6 +80,7 @@ export type ProductCountAggregateOutputType = {
   unitId: number
   name: number
   description: number
+  sku: number
   costPrice: number
   sellingPrice: number
   currency: number
@@ -107,6 +110,7 @@ export type ProductMinAggregateInputType = {
   unitId?: true
   name?: true
   description?: true
+  sku?: true
   costPrice?: true
   sellingPrice?: true
   currency?: true
@@ -124,6 +128,7 @@ export type ProductMaxAggregateInputType = {
   unitId?: true
   name?: true
   description?: true
+  sku?: true
   costPrice?: true
   sellingPrice?: true
   currency?: true
@@ -141,6 +146,7 @@ export type ProductCountAggregateInputType = {
   unitId?: true
   name?: true
   description?: true
+  sku?: true
   costPrice?: true
   sellingPrice?: true
   currency?: true
@@ -245,6 +251,7 @@ export type ProductGroupByOutputType = {
   unitId: string | null
   name: string
   description: string | null
+  sku: string | null
   costPrice: runtime.Decimal
   sellingPrice: runtime.Decimal
   currency: $Enums.Currency
@@ -259,7 +266,7 @@ export type ProductGroupByOutputType = {
   _max: ProductMaxAggregateOutputType | null
 }
 
-type GetProductGroupByPayload<T extends ProductGroupByArgs> = Prisma.PrismaPromise<
+export type GetProductGroupByPayload<T extends ProductGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<ProductGroupByOutputType, T['by']> &
       {
@@ -285,6 +292,7 @@ export type ProductWhereInput = {
   unitId?: Prisma.UuidNullableFilter<"Product"> | string | null
   name?: Prisma.StringFilter<"Product"> | string
   description?: Prisma.StringNullableFilter<"Product"> | string | null
+  sku?: Prisma.StringNullableFilter<"Product"> | string | null
   costPrice?: Prisma.DecimalFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFilter<"Product"> | $Enums.Currency
@@ -308,6 +316,7 @@ export type ProductOrderByWithRelationInput = {
   unitId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  sku?: Prisma.SortOrderInput | Prisma.SortOrder
   costPrice?: Prisma.SortOrder
   sellingPrice?: Prisma.SortOrder
   currency?: Prisma.SortOrder
@@ -325,6 +334,7 @@ export type ProductOrderByWithRelationInput = {
 
 export type ProductWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  tenantId_sku?: Prisma.ProductTenantIdSkuCompoundUniqueInput
   AND?: Prisma.ProductWhereInput | Prisma.ProductWhereInput[]
   OR?: Prisma.ProductWhereInput[]
   NOT?: Prisma.ProductWhereInput | Prisma.ProductWhereInput[]
@@ -334,6 +344,7 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   unitId?: Prisma.UuidNullableFilter<"Product"> | string | null
   name?: Prisma.StringFilter<"Product"> | string
   description?: Prisma.StringNullableFilter<"Product"> | string | null
+  sku?: Prisma.StringNullableFilter<"Product"> | string | null
   costPrice?: Prisma.DecimalFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFilter<"Product"> | $Enums.Currency
@@ -347,7 +358,7 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   unit?: Prisma.XOR<Prisma.UnitNullableScalarRelationFilter, Prisma.UnitWhereInput> | null
   inventory?: Prisma.InventoryListRelationFilter
   saleItems?: Prisma.SaleItemListRelationFilter
-}, "id">
+}, "id" | "tenantId_sku">
 
 export type ProductOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -357,6 +368,7 @@ export type ProductOrderByWithAggregationInput = {
   unitId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  sku?: Prisma.SortOrderInput | Prisma.SortOrder
   costPrice?: Prisma.SortOrder
   sellingPrice?: Prisma.SortOrder
   currency?: Prisma.SortOrder
@@ -382,6 +394,7 @@ export type ProductScalarWhereWithAggregatesInput = {
   unitId?: Prisma.UuidNullableWithAggregatesFilter<"Product"> | string | null
   name?: Prisma.StringWithAggregatesFilter<"Product"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
+  sku?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
   costPrice?: Prisma.DecimalWithAggregatesFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalWithAggregatesFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyWithAggregatesFilter<"Product"> | $Enums.Currency
@@ -395,6 +408,7 @@ export type ProductCreateInput = {
   id?: string
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -418,6 +432,7 @@ export type ProductUncheckedCreateInput = {
   unitId?: string | null
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -433,6 +448,7 @@ export type ProductUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -456,6 +472,7 @@ export type ProductUncheckedUpdateInput = {
   unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -475,6 +492,7 @@ export type ProductCreateManyInput = {
   unitId?: string | null
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -488,6 +506,7 @@ export type ProductUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -505,6 +524,7 @@ export type ProductUncheckedUpdateManyInput = {
   unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -524,6 +544,11 @@ export type ProductOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type ProductTenantIdSkuCompoundUniqueInput = {
+  tenantId: string
+  sku: string
+}
+
 export type ProductCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
@@ -532,6 +557,7 @@ export type ProductCountOrderByAggregateInput = {
   unitId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  sku?: Prisma.SortOrder
   costPrice?: Prisma.SortOrder
   sellingPrice?: Prisma.SortOrder
   currency?: Prisma.SortOrder
@@ -554,6 +580,7 @@ export type ProductMaxOrderByAggregateInput = {
   unitId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  sku?: Prisma.SortOrder
   costPrice?: Prisma.SortOrder
   sellingPrice?: Prisma.SortOrder
   currency?: Prisma.SortOrder
@@ -571,6 +598,7 @@ export type ProductMinOrderByAggregateInput = {
   unitId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  sku?: Prisma.SortOrder
   costPrice?: Prisma.SortOrder
   sellingPrice?: Prisma.SortOrder
   currency?: Prisma.SortOrder
@@ -794,6 +822,7 @@ export type ProductCreateWithoutTenantInput = {
   id?: string
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -815,6 +844,7 @@ export type ProductUncheckedCreateWithoutTenantInput = {
   unitId?: string | null
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -863,6 +893,7 @@ export type ProductScalarWhereInput = {
   unitId?: Prisma.UuidNullableFilter<"Product"> | string | null
   name?: Prisma.StringFilter<"Product"> | string
   description?: Prisma.StringNullableFilter<"Product"> | string | null
+  sku?: Prisma.StringNullableFilter<"Product"> | string | null
   costPrice?: Prisma.DecimalFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFilter<"Product"> | $Enums.Currency
@@ -876,6 +907,7 @@ export type ProductCreateWithoutUnitInput = {
   id?: string
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -897,6 +929,7 @@ export type ProductUncheckedCreateWithoutUnitInput = {
   brandCategoryId?: string | null
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -938,6 +971,7 @@ export type ProductCreateWithoutCategoryInput = {
   id?: string
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -959,6 +993,7 @@ export type ProductUncheckedCreateWithoutCategoryInput = {
   unitId?: string | null
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -1000,6 +1035,7 @@ export type ProductCreateWithoutBrandCategoryInput = {
   id?: string
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -1021,6 +1057,7 @@ export type ProductUncheckedCreateWithoutBrandCategoryInput = {
   unitId?: string | null
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -1062,6 +1099,7 @@ export type ProductCreateWithoutInventoryInput = {
   id?: string
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -1084,6 +1122,7 @@ export type ProductUncheckedCreateWithoutInventoryInput = {
   unitId?: string | null
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -1114,6 +1153,7 @@ export type ProductUpdateWithoutInventoryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1136,6 +1176,7 @@ export type ProductUncheckedUpdateWithoutInventoryInput = {
   unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1150,6 +1191,7 @@ export type ProductCreateWithoutSaleItemsInput = {
   id?: string
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -1172,6 +1214,7 @@ export type ProductUncheckedCreateWithoutSaleItemsInput = {
   unitId?: string | null
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -1202,6 +1245,7 @@ export type ProductUpdateWithoutSaleItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1224,6 +1268,7 @@ export type ProductUncheckedUpdateWithoutSaleItemsInput = {
   unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1241,6 +1286,7 @@ export type ProductCreateManyTenantInput = {
   unitId?: string | null
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -1254,6 +1300,7 @@ export type ProductUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1275,6 +1322,7 @@ export type ProductUncheckedUpdateWithoutTenantInput = {
   unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1293,6 +1341,7 @@ export type ProductUncheckedUpdateManyWithoutTenantInput = {
   unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1309,6 +1358,7 @@ export type ProductCreateManyUnitInput = {
   brandCategoryId?: string | null
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -1322,6 +1372,7 @@ export type ProductUpdateWithoutUnitInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1343,6 +1394,7 @@ export type ProductUncheckedUpdateWithoutUnitInput = {
   brandCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1361,6 +1413,7 @@ export type ProductUncheckedUpdateManyWithoutUnitInput = {
   brandCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1377,6 +1430,7 @@ export type ProductCreateManyCategoryInput = {
   unitId?: string | null
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -1390,6 +1444,7 @@ export type ProductUpdateWithoutCategoryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1411,6 +1466,7 @@ export type ProductUncheckedUpdateWithoutCategoryInput = {
   unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1429,6 +1485,7 @@ export type ProductUncheckedUpdateManyWithoutCategoryInput = {
   unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1445,6 +1502,7 @@ export type ProductCreateManyBrandCategoryInput = {
   unitId?: string | null
   name: string
   description?: string | null
+  sku?: string | null
   costPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
@@ -1458,6 +1516,7 @@ export type ProductUpdateWithoutBrandCategoryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1479,6 +1538,7 @@ export type ProductUncheckedUpdateWithoutBrandCategoryInput = {
   unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1497,6 +1557,7 @@ export type ProductUncheckedUpdateManyWithoutBrandCategoryInput = {
   unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sku?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   costPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   sellingPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
@@ -1554,6 +1615,7 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   unitId?: boolean
   name?: boolean
   description?: boolean
+  sku?: boolean
   costPrice?: boolean
   sellingPrice?: boolean
   currency?: boolean
@@ -1578,6 +1640,7 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   unitId?: boolean
   name?: boolean
   description?: boolean
+  sku?: boolean
   costPrice?: boolean
   sellingPrice?: boolean
   currency?: boolean
@@ -1599,6 +1662,7 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   unitId?: boolean
   name?: boolean
   description?: boolean
+  sku?: boolean
   costPrice?: boolean
   sellingPrice?: boolean
   currency?: boolean
@@ -1620,6 +1684,7 @@ export type ProductSelectScalar = {
   unitId?: boolean
   name?: boolean
   description?: boolean
+  sku?: boolean
   costPrice?: boolean
   sellingPrice?: boolean
   currency?: boolean
@@ -1629,7 +1694,7 @@ export type ProductSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "categoryId" | "brandCategoryId" | "unitId" | "name" | "description" | "costPrice" | "sellingPrice" | "currency" | "imageUrl" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "categoryId" | "brandCategoryId" | "unitId" | "name" | "description" | "sku" | "costPrice" | "sellingPrice" | "currency" | "imageUrl" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   category?: boolean | Prisma.Product$categoryArgs<ExtArgs>
@@ -1670,6 +1735,7 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     unitId: string | null
     name: string
     description: string | null
+    sku: string | null
     costPrice: runtime.Decimal
     sellingPrice: runtime.Decimal
     currency: $Enums.Currency
@@ -2113,6 +2179,7 @@ export interface ProductFieldRefs {
   readonly unitId: Prisma.FieldRef<"Product", 'String'>
   readonly name: Prisma.FieldRef<"Product", 'String'>
   readonly description: Prisma.FieldRef<"Product", 'String'>
+  readonly sku: Prisma.FieldRef<"Product", 'String'>
   readonly costPrice: Prisma.FieldRef<"Product", 'Decimal'>
   readonly sellingPrice: Prisma.FieldRef<"Product", 'Decimal'>
   readonly currency: Prisma.FieldRef<"Product", 'Currency'>

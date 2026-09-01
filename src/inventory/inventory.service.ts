@@ -19,21 +19,31 @@ export class InventoryService {
     return this.prisma.inventory.create({
       data: { ...dto, tenantId } as any,
       include: {
-        product: { select: { id: true, name: true } },
+        product: { select: { id: true, name: true, sku: true } },
         supplier: { select: { id: true, name: true } },
       },
     });
   }
 
-  async findAll(tenantId: string, page = 1, limit = 20) {
+  async findAll(tenantId: string, page = 1, limit = 20, search?: string) {
     const { skip, take, page: p, limit: l } = paginateParams(page, limit);
-    const where = { tenantId };
+    const where = {
+      tenantId,
+      ...(search && {
+        product: {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' as const } },
+            { sku: { contains: search, mode: 'insensitive' as const } },
+          ],
+        },
+      }),
+    };
     const [data, total] = await Promise.all([
       this.prisma.inventory.findMany({
         where,
         include: {
           product: {
-            select: { id: true, name: true, sellingPrice: true, currency: true, unit: true },
+            select: { id: true, name: true, sku: true, sellingPrice: true, currency: true, unit: true },
           },
           supplier: { select: { id: true, name: true } },
         },
@@ -53,7 +63,7 @@ export class InventoryService {
         minQuantity: { not: null },
       },
       include: {
-        product: { select: { id: true, name: true, unit: true } },
+        product: { select: { id: true, name: true, sku: true, unit: true } },
         supplier: { select: { id: true, name: true } },
       },
       orderBy: { quantity: 'asc' },
@@ -66,7 +76,7 @@ export class InventoryService {
     const inventory = await this.prisma.inventory.findFirst({
       where: { id, tenantId },
       include: {
-        product: { select: { id: true, name: true } },
+        product: { select: { id: true, name: true, sku: true } },
         supplier: { select: { id: true, name: true } },
         movements: {
           orderBy: { createdAt: 'desc' },

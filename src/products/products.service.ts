@@ -20,7 +20,7 @@ export class ProductsService {
   }
 
   async create(tenantId: string, dto: CreateProductDto, image?: Express.Multer.File) {
-    const { quantity, minQuantity, ...productData } = dto;
+    const { quantity, minQuantity, supplierId, ...productData } = dto;
 
     if (image) {
       productData.imageUrl = await this.minio.uploadImage(
@@ -40,6 +40,7 @@ export class ProductsService {
         data: {
           productId: product.id,
           tenantId,
+          supplierId: supplierId ?? null,
           quantity: quantity ?? 0,
           minQuantity: minQuantity ?? 0,
           // Seed the inventory's own cost fields from the product so sale-item
@@ -73,6 +74,7 @@ export class ProductsService {
         OR: [
           { name: { contains: search, mode: 'insensitive' as const } },
           { description: { contains: search, mode: 'insensitive' as const } },
+          { sku: { contains: search, mode: 'insensitive' as const } },
         ],
       }),
     };
@@ -116,7 +118,7 @@ export class ProductsService {
 
   async update(id: string, tenantId: string, dto: UpdateProductDto) {
     await this.findOne(id, tenantId);
-    const { quantity, minQuantity, ...productData } = dto as any;
+    const { quantity, minQuantity, supplierId, ...productData } = dto as any;
 
     return this.prisma.$transaction(async (tx) => {
       await tx.product.update({
@@ -124,12 +126,13 @@ export class ProductsService {
         data: productData,
       });
 
-      // Sync inventory fields if provided — costPrice/currency included, so the
-      // inventory record (used for sale-item cost snapshots and stock-value
+      // Sync inventory fields if provided — costPrice/currency/supplier included, so
+      // the inventory record (used for sale-item cost snapshots and stock-value
       // reports) never drifts from what the product form actually saved.
       if (
         quantity !== undefined ||
         minQuantity !== undefined ||
+        supplierId !== undefined ||
         productData.costPrice !== undefined ||
         productData.currency !== undefined
       ) {
@@ -138,6 +141,7 @@ export class ProductsService {
           data: {
             ...(quantity !== undefined && { quantity }),
             ...(minQuantity !== undefined && { minQuantity }),
+            ...(supplierId !== undefined && { supplierId }),
             ...(productData.costPrice !== undefined && { costPrice: productData.costPrice }),
             ...(productData.currency !== undefined && { costCurrency: productData.currency }),
           },

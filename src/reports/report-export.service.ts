@@ -25,10 +25,13 @@ export class ReportExportService {
     dto: ExportReportDto,
     lang: Locale = DEFAULT_LOCALE,
   ) {
+    // Default to PDF when the client doesn't specify a format.
+    const format = dto.format ?? ExportFormat.PDF;
+
     const data = await this.getReportData(tenantId, dto);
     const { buffer, contentType, extension } = this.generateFile(
       data,
-      dto.format,
+      format,
       dto.reportType,
       lang,
     );
@@ -41,7 +44,7 @@ export class ReportExportService {
         tenantId,
         userId,
         name: fileName,
-        format: dto.format as any,
+        format: format as any,
         objectKey,
         size: buffer.length,
       },

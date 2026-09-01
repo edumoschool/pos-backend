@@ -56,8 +56,10 @@ export class InventoryService {
     return paginated(data, total, p, l);
   }
 
-  findLowStock(tenantId: string) {
-    return this.prisma.inventory.findMany({
+  async findLowStock(tenantId: string, page = 1, limit = 20) {
+    const { skip, take, page: p, limit: l } = paginateParams(page, limit);
+
+    const items = await this.prisma.inventory.findMany({
       where: {
         tenantId,
         minQuantity: { not: null },
@@ -67,14 +69,18 @@ export class InventoryService {
         supplier: { select: { id: true, name: true } },
       },
       orderBy: { quantity: 'asc' },
-    }).then(items =>
-      // `quantity`/`minQuantity` are Prisma.Decimal objects — comparing them
-      // with `<=` directly coerces to strings and compares lexicographically
-      // ("195" <= "20" is true!), not numerically. Convert to Number first.
-      items.filter(
-        item => item.minQuantity !== null && Number(item.quantity) <= Number(item.minQuantity),
-      ),
+    });
+
+    // `quantity`/`minQuantity` are Prisma.Decimal objects — comparing them
+    // with `<=` directly coerces to strings and compares lexicographically
+    // ("195" <= "20" is true!), not numerically. Convert to Number first.
+    // (Filtered in JS rather than the `where` clause since Prisma has no
+    // column-to-column comparison operator without raw SQL.)
+    const lowStock = items.filter(
+      (item) => item.minQuantity !== null && Number(item.quantity) <= Number(item.minQuantity),
     );
+
+    return paginated(lowStock.slice(skip, skip + take), lowStock.length, p, l);
   }
 
   async findOne(id: string, tenantId: string) {

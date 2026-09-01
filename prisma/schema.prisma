@@ -278,6 +278,7 @@ model Product {
   unitId          String?  @map("unit_id") @db.Uuid
   name            String
   description     String?
+  sku             String?  @map("sku")
   costPrice       Decimal  @default(0) @map("cost_price") @db.Decimal(12, 2)
   sellingPrice    Decimal  @default(0) @map("selling_price") @db.Decimal(12, 2)
   currency        Currency @default(UZS)
@@ -292,6 +293,7 @@ model Product {
   unit          Unit?          @relation(fields: [unitId], references: [id])
   inventory     Inventory[]
   saleItems     SaleItem[]
+  @@unique([tenantId, sku], map: "products_tenant_sku_idx")
   @@index([tenantId, isActive])
   @@index([tenantId, categoryId])
   @@index([tenantId, name])

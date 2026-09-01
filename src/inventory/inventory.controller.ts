@@ -21,12 +21,14 @@ export class InventoryController {
   @ApiOperation({ summary: 'List inventory for a tenant' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'search', required: false, description: 'Matches product name or SKU/barcode' })
   findAll(
     @CurrentUser('tenantId') tenantId: string,
     @Query('page') page = 1,
     @Query('limit') limit = 20,
+    @Query('search') search?: string,
   ) {
-    return this.service.findAll(tenantId, +page, +limit);
+    return this.service.findAll(tenantId, +page, +limit, search);
   }
 
   @Get('low-stock')

@@ -14,7 +14,30 @@ import { paginateParams, paginated } from '../common/helpers/paginate';
 const TX_INCLUDE = {
   client: { select: { id: true, fullName: true, phone: true } },
   user: { select: { id: true, fullName: true } },
-  sale: { select: { id: true, status: true, totalAmount: true, paidAmount: true, debtAmount: true } },
+  sale: {
+    select: {
+      id: true,
+      status: true,
+      paymentMethod: true,
+      currency: true,
+      totalAmount: true,
+      discount: true,
+      paidAmount: true,
+      debtAmount: true,
+      note: true,
+      createdAt: true,
+      branch: { select: { id: true, name: true } },
+      items: {
+        select: {
+          id: true,
+          quantity: true,
+          unitPrice: true,
+          totalPrice: true,
+          product: { select: { id: true, name: true, sku: true } },
+        },
+      },
+    },
+  },
 } as const;
 
 @Injectable()

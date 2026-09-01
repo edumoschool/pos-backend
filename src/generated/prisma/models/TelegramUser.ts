@@ -189,7 +189,7 @@ export type TelegramUserGroupByOutputType = {
   _max: TelegramUserMaxAggregateOutputType | null
 }
 
-type GetTelegramUserGroupByPayload<T extends TelegramUserGroupByArgs> = Prisma.PrismaPromise<
+export type GetTelegramUserGroupByPayload<T extends TelegramUserGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<TelegramUserGroupByOutputType, T['by']> &
       {

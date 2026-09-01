@@ -151,7 +151,7 @@ export type IncomeCategoryGroupByOutputType = {
   _max: IncomeCategoryMaxAggregateOutputType | null
 }
 
-type GetIncomeCategoryGroupByPayload<T extends IncomeCategoryGroupByArgs> = Prisma.PrismaPromise<
+export type GetIncomeCategoryGroupByPayload<T extends IncomeCategoryGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<IncomeCategoryGroupByOutputType, T['by']> &
       {

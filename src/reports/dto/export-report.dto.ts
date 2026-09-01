@@ -22,9 +22,10 @@ export class ExportReportDto {
   @IsEnum(ExportReportType)
   reportType: ExportReportType;
 
-  @ApiProperty({ enum: ExportFormat })
+  @ApiPropertyOptional({ enum: ExportFormat, default: ExportFormat.PDF })
+  @IsOptional()
   @IsEnum(ExportFormat)
-  format: ExportFormat;
+  format?: ExportFormat = ExportFormat.PDF;
 
   @ApiPropertyOptional()
   @IsOptional()

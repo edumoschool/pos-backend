@@ -151,7 +151,7 @@ export type ExpenseCategoryGroupByOutputType = {
   _max: ExpenseCategoryMaxAggregateOutputType | null
 }
 
-type GetExpenseCategoryGroupByPayload<T extends ExpenseCategoryGroupByArgs> = Prisma.PrismaPromise<
+export type GetExpenseCategoryGroupByPayload<T extends ExpenseCategoryGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<ExpenseCategoryGroupByOutputType, T['by']> &
       {

@@ -49,6 +49,13 @@ export const en = {
       notFound: 'Client not found.',
       hasDebt: 'This client has an outstanding balance and cannot be deleted.',
     },
+    clientTransaction: {
+      saleLinkRequiresIncome: 'A payment linked to a sale must be of type "income".',
+      saleClientMismatch: 'That sale does not belong to this client.',
+      currencyMismatch: 'This sale is in {expected} — a {received} payment cannot be applied to it.',
+      exceedsDebt: 'Payment ({amount}) cannot exceed the remaining debt ({remaining}).',
+      amountMustBePositive: 'Enter an amount greater than zero.',
+    },
     supplier: {
       notFound: 'Supplier not found.',
       hasDebt: 'This supplier has an outstanding balance and cannot be deleted.',

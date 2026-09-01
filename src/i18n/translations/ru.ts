@@ -44,6 +44,13 @@ export const ru: TranslationCatalog = {
       notFound: 'Клиент не найден.',
       hasDebt: 'У клиента есть задолженность, его нельзя удалить.',
     },
+    clientTransaction: {
+      saleLinkRequiresIncome: 'Платёж, привязанный к продаже, должен быть типа «доход».',
+      saleClientMismatch: 'Эта продажа не принадлежит данному клиенту.',
+      currencyMismatch: 'Продажа оформлена в {expected} — платёж в {received} нельзя применить к ней.',
+      exceedsDebt: 'Платёж ({amount}) не может превышать остаток долга ({remaining}).',
+      amountMustBePositive: 'Введите сумму больше нуля.',
+    },
     supplier: {
       notFound: 'Поставщик не найден.',
       hasDebt: 'У поставщика есть задолженность, его нельзя удалить.',

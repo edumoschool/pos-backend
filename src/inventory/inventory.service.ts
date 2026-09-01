@@ -68,7 +68,12 @@ export class InventoryService {
       },
       orderBy: { quantity: 'asc' },
     }).then(items =>
-      items.filter(item => item.minQuantity !== null && item.quantity <= item.minQuantity),
+      // `quantity`/`minQuantity` are Prisma.Decimal objects — comparing them
+      // with `<=` directly coerces to strings and compares lexicographically
+      // ("195" <= "20" is true!), not numerically. Convert to Number first.
+      items.filter(
+        item => item.minQuantity !== null && Number(item.quantity) <= Number(item.minQuantity),
+      ),
     );
   }
 

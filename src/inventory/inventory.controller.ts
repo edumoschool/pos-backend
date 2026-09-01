@@ -33,8 +33,14 @@ export class InventoryController {
 
   @Get('low-stock')
   @ApiOperation({ summary: 'Get low-stock items' })
-  findLowStock(@CurrentUser('tenantId') tenantId: string) {
-    return this.service.findLowStock(tenantId);
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  findLowStock(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    return this.service.findLowStock(tenantId, +page, +limit);
   }
 
   @Get('movements')

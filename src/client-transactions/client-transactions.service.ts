@@ -27,6 +27,7 @@ const TX_INCLUDE = {
       note: true,
       createdAt: true,
       branch: { select: { id: true, name: true } },
+      user: { select: { id: true, fullName: true } },
       items: {
         select: {
           id: true,
@@ -224,6 +225,7 @@ export class ClientTransactionsService {
 
     const transactions = await this.prisma.clientTransaction.findMany({
       where: { tenantId, clientId },
+      include: TX_INCLUDE,
       orderBy: { createdAt: 'asc' },
     });
 

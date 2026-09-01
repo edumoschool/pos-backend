@@ -350,19 +350,13 @@ export class SalesService {
         }
       }
 
-      // If there was client debt, create an offsetting ClientTransaction (income = debt reversed)
-      if (sale.clientId && new Prisma.Decimal(sale.debtAmount).greaterThan(0)) {
-        await tx.clientTransaction.create({
-          data: {
-            tenantId,
-            clientId: sale.clientId,
-            userId,
-            saleId: sale.id,
-            type: 'income',
-            amount: sale.debtAmount,
-            currency: sale.currency,
-            description: `Debt reversal — cancelled sale #${id}`,
-          },
+      // A cancelled sale is void for accounting purposes — remove every
+      // ClientTransaction it produced (the original debt entry and any
+      // partial payments already recorded against it) instead of leaving an
+      // offsetting reversal entry cluttering the client's ledger.
+      if (sale.clientId) {
+        await tx.clientTransaction.deleteMany({
+          where: { saleId: sale.id, tenantId },
         });
       }
 

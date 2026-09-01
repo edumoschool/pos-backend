@@ -19,6 +19,17 @@ export class ProductsService {
     return { ...product, imageUrl: null };
   }
 
+  /**
+   * `inventory.quantity`/`minQuantity` are Prisma.Decimal objects — comparing
+   * them directly with `<=` coerces both to strings and compares
+   * lexicographically ("195" <= "20" is true!), not numerically. Convert to
+   * Number first.
+   */
+  private inventoryStatus(inventory: { quantity: unknown; minQuantity: unknown } | null): 'low-stock' | 'in-stock' {
+    if (!inventory) return 'in-stock';
+    return Number(inventory.quantity) <= Number(inventory.minQuantity ?? 0) ? 'low-stock' : 'in-stock';
+  }
+
   async create(tenantId: string, dto: CreateProductDto, image?: Express.Multer.File) {
     const { quantity, minQuantity, supplierId, ...productData } = dto;
 
@@ -58,7 +69,7 @@ export class ProductsService {
       const inventory = created.inventory && created.inventory.length > 0 ? created.inventory[0] : null;
       return this.resolveImageUrl({
         ...created,
-        inventoryStatus: inventory && inventory.quantity <= (inventory.minQuantity || 0) ? 'low-stock' : 'in-stock',
+        inventoryStatus: this.inventoryStatus(inventory),
       });
     });
   }
@@ -92,7 +103,7 @@ export class ProductsService {
       const inventory = product.inventory && product.inventory.length > 0 ? product.inventory[0] : null;
       return this.resolveImageUrl({
         ...product,
-        inventoryStatus: inventory && inventory.quantity <= (inventory.minQuantity || 0) ? 'low-stock' : 'in-stock',
+        inventoryStatus: this.inventoryStatus(inventory),
       });
     }));
     return paginated(data, total, p, l);
@@ -112,7 +123,7 @@ export class ProductsService {
     const inventory = product.inventory && product.inventory.length > 0 ? product.inventory[0] : null;
     return this.resolveImageUrl({
       ...product,
-      inventoryStatus: inventory && inventory.quantity <= (inventory.minQuantity || 0) ? 'low-stock' : 'in-stock',
+      inventoryStatus: this.inventoryStatus(inventory),
     });
   }
 
@@ -155,7 +166,7 @@ export class ProductsService {
       const inventory = updated.inventory && updated.inventory.length > 0 ? updated.inventory[0] : null;
       return this.resolveImageUrl({
         ...updated,
-        inventoryStatus: inventory && inventory.quantity <= (inventory.minQuantity || 0) ? 'low-stock' : 'in-stock',
+        inventoryStatus: this.inventoryStatus(inventory),
       });
     });
   }
